@@ -4,7 +4,13 @@ FastAPI main entrypoint with CORS, route registration, and startup database veri
 """
 
 import os
+import sys
+
+# Ensure repository root is in sys.path
+sys.path.insert(0, os.path.abspath("."))
+
 from fastapi import FastAPI
+
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database.db import engine, Base
 from backend.database.init_db import seed_database
