@@ -12,7 +12,7 @@ from typing import List, Dict, Any
 PROCESSED_DIR = "data/processed"
 
 CANONICAL_ALIASES = {
-    "python": "Python", "python3": "Python", "python 3": "Python",
+    "python": "Python", "python3": "Python", "python 3": "Python", "python programming": "Python",
     "javascript": "JavaScript", "js": "JavaScript", "typescript": "TypeScript", "ts": "TypeScript",
     "react": "React", "react.js": "React", "reactjs": "React", "react native": "React Native",
     "vue": "Vue.js", "vue.js": "Vue.js", "angular": "Angular",
