@@ -11,6 +11,31 @@ from typing import List, Dict, Any
 
 PROCESSED_DIR = "data/processed"
 
+CANONICAL_ALIASES = {
+    "python": "Python", "python3": "Python", "python 3": "Python",
+    "javascript": "JavaScript", "js": "JavaScript", "typescript": "TypeScript", "ts": "TypeScript",
+    "react": "React", "react.js": "React", "reactjs": "React", "react native": "React Native",
+    "vue": "Vue.js", "vue.js": "Vue.js", "angular": "Angular",
+    "node": "Node.js", "node.js": "Node.js", "nodejs": "Node.js", "fastapi": "FastAPI",
+    "html": "HTML/CSS", "css": "HTML/CSS", "html/css": "HTML/CSS",
+    "sql": "SQL", "postgresql": "PostgreSQL", "postgres": "PostgreSQL", "mongodb": "MongoDB",
+    "aws": "AWS", "azure": "Azure", "gcp": "GCP",
+    "docker": "Docker", "kubernetes": "Kubernetes", "k8s": "Kubernetes", "ci/cd": "CI/CD",
+    "git": "Git", "github": "Git", "linux": "Linux",
+    "machine learning": "Machine Learning", "ml": "Machine Learning", "deep learning": "Deep Learning",
+    "nlp": "Natural Language Processing", "scikit-learn": "Scikit-Learn", "sklearn": "Scikit-Learn",
+    "pandas": "Pandas", "numpy": "NumPy", "data analysis": "Data Analysis",
+    "rest apis": "REST APIs", "rest api": "REST APIs", "microservices": "Microservices"
+}
+
+def normalize_skill_name(raw_name: str) -> str:
+    clean = re.sub(r"[^\w\s\+\#\/\.\-]", "", raw_name.strip().lower())
+    clean = re.sub(r"\s+", " ", clean).strip()
+    if clean in CANONICAL_ALIASES:
+        return CANONICAL_ALIASES[clean]
+    return raw_name.strip().title()
+
+
 class SkillExtractor:
     def __init__(self):
         self.skills_lookup = {}
