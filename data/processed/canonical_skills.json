@@ -1,0 +1,906 @@
+[
+  {
+    "skill_id": "SKL-001",
+    "name": "Python",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "python3",
+      "python 3",
+      "python programming"
+    ]
+  },
+  {
+    "skill_id": "SKL-002",
+    "name": "Java",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "core java"
+    ]
+  },
+  {
+    "skill_id": "SKL-003",
+    "name": "JavaScript",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "js",
+      "es6"
+    ]
+  },
+  {
+    "skill_id": "SKL-004",
+    "name": "C++",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "cpp"
+    ]
+  },
+  {
+    "skill_id": "SKL-005",
+    "name": "C#",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "c sharp"
+    ]
+  },
+  {
+    "skill_id": "SKL-006",
+    "name": "Ruby",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-007",
+    "name": "PHP",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-008",
+    "name": "Go",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "golang"
+    ]
+  },
+  {
+    "skill_id": "SKL-009",
+    "name": "Rust",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-010",
+    "name": "TypeScript",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "ts"
+    ]
+  },
+  {
+    "skill_id": "SKL-011",
+    "name": "Kotlin",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-012",
+    "name": "Swift",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-013",
+    "name": "Scala",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-014",
+    "name": "Perl",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-015",
+    "name": "Bash/Shell",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": [
+      "shell scripting",
+      "bash"
+    ]
+  },
+  {
+    "skill_id": "SKL-016",
+    "name": "R",
+    "category": "Programming",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-017",
+    "name": "HTML/CSS",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": [
+      "html",
+      "css",
+      "html5",
+      "css3"
+    ]
+  },
+  {
+    "skill_id": "SKL-018",
+    "name": "React",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": [
+      "react.js",
+      "reactjs"
+    ]
+  },
+  {
+    "skill_id": "SKL-019",
+    "name": "Vue.js",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": [
+      "vue",
+      "vuejs"
+    ]
+  },
+  {
+    "skill_id": "SKL-020",
+    "name": "Angular",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": [
+      "angularjs"
+    ]
+  },
+  {
+    "skill_id": "SKL-021",
+    "name": "Node.js",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": [
+      "node",
+      "nodejs"
+    ]
+  },
+  {
+    "skill_id": "SKL-022",
+    "name": "Django",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-023",
+    "name": "Flask",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-024",
+    "name": "REST APIs",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": [
+      "rest api",
+      "restful api",
+      "rest"
+    ]
+  },
+  {
+    "skill_id": "SKL-025",
+    "name": "GraphQL",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-026",
+    "name": "Responsive Design",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-027",
+    "name": "Web Accessibility",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-028",
+    "name": "Seo",
+    "category": "Web Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-029",
+    "name": "Android",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-030",
+    "name": "Ios",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-031",
+    "name": "React Native",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-032",
+    "name": "Flutter",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-033",
+    "name": "Mobile Ui/Ux",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-034",
+    "name": "Mobile Security",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-035",
+    "name": "App Testing",
+    "category": "Mobile Development",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-036",
+    "name": "AWS",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": [
+      "amazon web services"
+    ]
+  },
+  {
+    "skill_id": "SKL-037",
+    "name": "Azure",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": [
+      "microsoft azure"
+    ]
+  },
+  {
+    "skill_id": "SKL-038",
+    "name": "GCP",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": [
+      "google cloud platform",
+      "google cloud"
+    ]
+  },
+  {
+    "skill_id": "SKL-039",
+    "name": "Docker",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": [
+      "docker containers"
+    ]
+  },
+  {
+    "skill_id": "SKL-040",
+    "name": "Kubernetes",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": [
+      "k8s"
+    ]
+  },
+  {
+    "skill_id": "SKL-041",
+    "name": "CI/CD",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": [
+      "cicd",
+      "continuous integration"
+    ]
+  },
+  {
+    "skill_id": "SKL-042",
+    "name": "Jenkins",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-043",
+    "name": "Terraform",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-044",
+    "name": "Cloudformation",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-045",
+    "name": "Ansible",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-046",
+    "name": "Microservices",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-047",
+    "name": "Serverless",
+    "category": "Cloud & DevOps",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-048",
+    "name": "Machine Learning",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": [
+      "ml"
+    ]
+  },
+  {
+    "skill_id": "SKL-049",
+    "name": "Deep Learning",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": [
+      "dl"
+    ]
+  },
+  {
+    "skill_id": "SKL-050",
+    "name": "TensorFlow",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-051",
+    "name": "PyTorch",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-052",
+    "name": "Scikit-Learn",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": [
+      "sklearn"
+    ]
+  },
+  {
+    "skill_id": "SKL-053",
+    "name": "Data Analysis",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": [
+      "data analytics"
+    ]
+  },
+  {
+    "skill_id": "SKL-054",
+    "name": "Statistics",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-055",
+    "name": "Pandas",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-056",
+    "name": "NumPy",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-057",
+    "name": "SQL",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-058",
+    "name": "Tableau",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-059",
+    "name": "Power BI",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": [
+      "powerbi"
+    ]
+  },
+  {
+    "skill_id": "SKL-060",
+    "name": "Jupyter",
+    "category": "Data Science & Analytics",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-061",
+    "name": "MySQL",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-062",
+    "name": "PostgreSQL",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": [
+      "postgres"
+    ]
+  },
+  {
+    "skill_id": "SKL-063",
+    "name": "MongoDB",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": [
+      "mongo"
+    ]
+  },
+  {
+    "skill_id": "SKL-064",
+    "name": "Oracle",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-065",
+    "name": "Cassandra",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-066",
+    "name": "Redis",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-067",
+    "name": "Database Design",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-068",
+    "name": "Query Optimization",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-069",
+    "name": "Nosql",
+    "category": "Database",
+    "importance_weight": 1.2,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-070",
+    "name": "Leadership",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-071",
+    "name": "Communication",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-072",
+    "name": "Problem Solving",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-073",
+    "name": "Critical Thinking",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-074",
+    "name": "Teamwork",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-075",
+    "name": "Time Management",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-076",
+    "name": "Adaptability",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-077",
+    "name": "Creativity",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-078",
+    "name": "Negotiation",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-079",
+    "name": "Mentoring",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-080",
+    "name": "Project Management",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-081",
+    "name": "Strategic Planning",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-082",
+    "name": "Decision Making",
+    "category": "Soft Skills",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-083",
+    "name": "Financial Analysis",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-084",
+    "name": "Business Development",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-085",
+    "name": "Market Research",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-086",
+    "name": "Business Acumen",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-087",
+    "name": "Sales",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-088",
+    "name": "Marketing",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-089",
+    "name": "Budget Management",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-090",
+    "name": "P&L Management",
+    "category": "Business",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-091",
+    "name": "User Experience",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-092",
+    "name": "User Interface",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-093",
+    "name": "Graphic Design",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-094",
+    "name": "Web Design",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-095",
+    "name": "Adobe Creative Suite",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-096",
+    "name": "Figma",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-097",
+    "name": "Wireframing",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-098",
+    "name": "Prototyping",
+    "category": "Design",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-099",
+    "name": "Penetration Testing",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-100",
+    "name": "Network Security",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-101",
+    "name": "Encryption",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-102",
+    "name": "Firewalls",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-103",
+    "name": "Security Protocols",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-104",
+    "name": "Risk Assessment",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-105",
+    "name": "Compliance",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-106",
+    "name": "Security Architecture",
+    "category": "Cybersecurity",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-107",
+    "name": "Agile Methodologies",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": [
+      "agile",
+      "scrum"
+    ]
+  },
+  {
+    "skill_id": "SKL-108",
+    "name": "Kanban",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-109",
+    "name": "Jira",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-110",
+    "name": "Confluence",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-111",
+    "name": "Documentation",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-112",
+    "name": "Technical Writing",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-113",
+    "name": "Presentation Skills",
+    "category": "Professional",
+    "importance_weight": 1.0,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-114",
+    "name": "FastAPI",
+    "category": "Web Development",
+    "importance_weight": 1.1,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-115",
+    "name": "Linux",
+    "category": "Systems",
+    "importance_weight": 1.1,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-116",
+    "name": "Git",
+    "category": "Tools",
+    "importance_weight": 1.1,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-117",
+    "name": "Natural Language Processing",
+    "category": "Data Science & AI",
+    "importance_weight": 1.3,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-118",
+    "name": "Cybersecurity",
+    "category": "Cybersecurity",
+    "importance_weight": 1.1,
+    "aliases": []
+  },
+  {
+    "skill_id": "SKL-119",
+    "name": "System Design",
+    "category": "Architecture",
+    "importance_weight": 1.3,
+    "aliases": []
+  }
+]

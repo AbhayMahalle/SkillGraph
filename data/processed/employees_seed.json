@@ -1,0 +1,272 @@
+[
+  {
+    "employee_id": "EMP-001",
+    "name": "Alex Rivera",
+    "email": "alex.rivera@skillgraph.internal",
+    "current_role": "Software Developer",
+    "department": "Engineering",
+    "experience_years": 3,
+    "qualification": "Bachelor's in Computer Science",
+    "target_role": "Cloud Engineer",
+    "skills": [
+      {
+        "name": "Python",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "SQL",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Git",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "Linux",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "REST APIs",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Problem Solving",
+        "proficiency": "Advanced",
+        "verified": true
+      }
+    ],
+    "completed_courses": [
+      "CRS-001",
+      "CRS-003",
+      "CRS-004"
+    ],
+    "bio": "Full-stack software developer with 3 years building web services. Eager to transition into Cloud Engineering and infrastructure automation."
+  },
+  {
+    "employee_id": "EMP-002",
+    "name": "Priya Sharma",
+    "email": "priya.sharma@skillgraph.internal",
+    "current_role": "Frontend Developer",
+    "department": "Engineering",
+    "experience_years": 2,
+    "qualification": "Bachelor's in Information Technology",
+    "target_role": "Full Stack Developer",
+    "skills": [
+      {
+        "name": "JavaScript",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "TypeScript",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "React",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "HTML/CSS",
+        "proficiency": "Expert",
+        "verified": true
+      },
+      {
+        "name": "UI/UX Design",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Git",
+        "proficiency": "Intermediate",
+        "verified": true
+      }
+    ],
+    "completed_courses": [
+      "CRS-002",
+      "CRS-010"
+    ],
+    "bio": "Frontend specialist experienced in responsive UI component libraries. Looking to expand into backend APIs and microservices."
+  },
+  {
+    "employee_id": "EMP-003",
+    "name": "Marcus Chen",
+    "email": "marcus.chen@skillgraph.internal",
+    "current_role": "Data Analyst",
+    "department": "Data Science",
+    "experience_years": 3,
+    "qualification": "Bachelor's in Statistics & Mathematics",
+    "target_role": "Data Scientist",
+    "skills": [
+      {
+        "name": "Python",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "SQL",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "Pandas",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "Data Analysis",
+        "proficiency": "Expert",
+        "verified": true
+      },
+      {
+        "name": "Data Visualization",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "Communication",
+        "proficiency": "Advanced",
+        "verified": true
+      }
+    ],
+    "completed_courses": [
+      "CRS-001",
+      "CRS-004",
+      "CRS-012"
+    ],
+    "bio": "Quantitative analyst with strong statistical background, focusing on expanding into predictive machine learning."
+  },
+  {
+    "employee_id": "EMP-004",
+    "name": "Elena Rostova",
+    "email": "elena.rostova@skillgraph.internal",
+    "current_role": "Backend Developer",
+    "department": "Engineering",
+    "experience_years": 4,
+    "qualification": "Master's in Software Engineering",
+    "target_role": "DevOps Engineer",
+    "skills": [
+      {
+        "name": "Python",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "FastAPI",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "PostgreSQL",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "Docker",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Linux",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "REST APIs",
+        "proficiency": "Expert",
+        "verified": true
+      }
+    ],
+    "completed_courses": [
+      "CRS-001",
+      "CRS-003",
+      "CRS-004",
+      "CRS-007",
+      "CRS-011"
+    ],
+    "bio": "Backend software architect with deep experience in database design and high-load APIs. Interested in DevOps and infrastructure automation."
+  },
+  {
+    "employee_id": "EMP-005",
+    "name": "David Kim",
+    "email": "david.kim@skillgraph.internal",
+    "current_role": "QA Automation Engineer",
+    "department": "Quality Assurance",
+    "experience_years": 2,
+    "qualification": "Bachelor's in Computer Science",
+    "target_role": "Backend Developer",
+    "skills": [
+      {
+        "name": "Python",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Git",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Linux",
+        "proficiency": "Beginner",
+        "verified": true
+      },
+      {
+        "name": "REST APIs",
+        "proficiency": "Intermediate",
+        "verified": true
+      },
+      {
+        "name": "Problem Solving",
+        "proficiency": "Advanced",
+        "verified": true
+      }
+    ],
+    "completed_courses": [
+      "CRS-001"
+    ],
+    "bio": "Test automation engineer seeking to transition directly into core backend software development."
+  },
+  {
+    "employee_id": "EMP-006",
+    "name": "Sarah Jenkins (HR Admin)",
+    "email": "sarah.jenkins@skillgraph.internal",
+    "current_role": "HR Director",
+    "department": "People & Culture",
+    "experience_years": 8,
+    "qualification": "Master's in Human Resources & Organizational Development",
+    "target_role": "HR Director",
+    "skills": [
+      {
+        "name": "Leadership",
+        "proficiency": "Expert",
+        "verified": true
+      },
+      {
+        "name": "Communication",
+        "proficiency": "Expert",
+        "verified": true
+      },
+      {
+        "name": "Agile Methodologies",
+        "proficiency": "Advanced",
+        "verified": true
+      },
+      {
+        "name": "Teamwork",
+        "proficiency": "Expert",
+        "verified": true
+      }
+    ],
+    "completed_courses": [
+      "CRS-018"
+    ],
+    "bio": "Head of Talent Development leading workforce planning, internal mobility strategy, and skill gap remediation."
+  }
+]

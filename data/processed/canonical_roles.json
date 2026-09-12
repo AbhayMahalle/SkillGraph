@@ -1,0 +1,1609 @@
+[
+  {
+    "role_id": "ROL-001",
+    "title": "Software Engineer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science or Bachelor's in Engineering",
+    "salary_range": "80-150K",
+    "required_skills": [
+      "Python",
+      "Java",
+      "C++",
+      "Git",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Software Engineer.",
+    "openings": 3
+  },
+  {
+    "role_id": "ROL-002",
+    "title": "Full Stack Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science or Software Engineering",
+    "salary_range": "85-140K",
+    "required_skills": [
+      "JavaScript",
+      "TypeScript",
+      "React",
+      "Node.js",
+      "FastAPI",
+      "SQL",
+      "Git",
+      "REST APIs"
+    ],
+    "description": "Builds end-to-end responsive web applications across frontend clients and backend microservices.",
+    "openings": 6
+  },
+  {
+    "role_id": "ROL-003",
+    "title": "Frontend Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science or IT",
+    "salary_range": "75-130K",
+    "required_skills": [
+      "JavaScript",
+      "TypeScript",
+      "React",
+      "HTML/CSS",
+      "Git",
+      "UI/UX Design"
+    ],
+    "description": "Builds accessible, visually stunning, high-performance web frontends and interactive component systems.",
+    "openings": 4
+  },
+  {
+    "role_id": "ROL-004",
+    "title": "Backend Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Software Engineering",
+    "salary_range": "85-140K",
+    "required_skills": [
+      "Python",
+      "FastAPI",
+      "SQL",
+      "PostgreSQL",
+      "Docker",
+      "REST APIs",
+      "Git"
+    ],
+    "description": "Develops resilient high-throughput backend APIs, databases, and microservices.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-005",
+    "title": "DevOps Engineer",
+    "category": "Cloud Operations",
+    "department": "Infrastructure",
+    "experience_years": 3,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "100-155K",
+    "required_skills": [
+      "Linux",
+      "Docker",
+      "Kubernetes",
+      "CI/CD",
+      "AWS",
+      "Git",
+      "Bash/Shell"
+    ],
+    "description": "Streamlines software deployment lifecycles, automates CI/CD pipelines, and manages container clusters.",
+    "openings": 4
+  },
+  {
+    "role_id": "ROL-006",
+    "title": "Cloud Architect",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 5,
+    "education": "Bachelor's in Computer Science or Cloud Certification",
+    "salary_range": "120-200K",
+    "required_skills": [
+      "AWS",
+      "Azure",
+      "GCP",
+      "System Design"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Cloud Architect.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-007",
+    "title": "Data Scientist",
+    "category": "Data & AI",
+    "department": "Data Science",
+    "experience_years": 3,
+    "education": "Master's in Data Science or Computer Science",
+    "salary_range": "110-165K",
+    "required_skills": [
+      "Python",
+      "SQL",
+      "Pandas",
+      "Scikit-Learn",
+      "Machine Learning",
+      "Data Visualization",
+      "Communication"
+    ],
+    "description": "Extracts insights from large-scale data, builds predictive ML models, and communicates value to stakeholders.",
+    "openings": 4
+  },
+  {
+    "role_id": "ROL-008",
+    "title": "Machine Learning Engineer",
+    "category": "Data & AI",
+    "department": "AI Engineering",
+    "experience_years": 4,
+    "education": "Master's in Computer Science or AI",
+    "salary_range": "125-180K",
+    "required_skills": [
+      "Python",
+      "Machine Learning",
+      "Deep Learning",
+      "PyTorch",
+      "Docker",
+      "FastAPI",
+      "MLOps"
+    ],
+    "description": "Designs, optimizes, and deploys scalable production deep learning and machine learning models.",
+    "openings": 3
+  },
+  {
+    "role_id": "ROL-009",
+    "title": "Database Administrator",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in IT or IT Certification",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "SQL",
+      "MongoDB",
+      "Linux"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Database Administrator.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-010",
+    "title": "Cybersecurity Specialist",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Bachelor's in Cybersecurity or Security Certification",
+    "salary_range": "85-150K",
+    "required_skills": [
+      "Penetration Testing",
+      "Security Protocols",
+      "Encryption",
+      "Firewalls"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Cybersecurity Specialist.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-011",
+    "title": "Security Engineer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Bachelor's in Computer Science or Security Certification",
+    "salary_range": "90-160K",
+    "required_skills": [
+      "Security Architecture",
+      "Encryption",
+      "Linux",
+      "Compliance"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Security Engineer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-012",
+    "title": "Mobile Developer Android",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Java",
+      "Kotlin",
+      "REST APIs"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Mobile Developer Android.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-013",
+    "title": "Software Architect",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 7,
+    "education": "Master's in Computer Science",
+    "salary_range": "130-200K",
+    "required_skills": [
+      "System Design",
+      "Microservices",
+      "Leadership"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Software Architect.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-014",
+    "title": "Technical Lead",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 5,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "100-170K",
+    "required_skills": [
+      "Leadership",
+      "Mentoring",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Technical Lead.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-015",
+    "title": "Data Analyst",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in Mathematics or Bachelor's in Statistics",
+    "salary_range": "60-110K",
+    "required_skills": [
+      "SQL",
+      "Python",
+      "Tableau"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Data Analyst.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-016",
+    "title": "BI Developer",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in IT or Bachelor's in Statistics",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Power BI",
+      "Tableau",
+      "SQL",
+      "Database Design"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a BI Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-017",
+    "title": "BI Analyst",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in Business or Bachelor's in IT",
+    "salary_range": "60-110K",
+    "required_skills": [
+      "SQL",
+      "Tableau",
+      "Power BI",
+      "Data Analysis"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a BI Analyst.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-018",
+    "title": "Audit Manager",
+    "category": "Finance & Accounting",
+    "department": "Operations",
+    "experience_years": 5,
+    "education": "Bachelor's in Accounting or CPA",
+    "salary_range": "90-150K",
+    "required_skills": [
+      "Risk Assessment",
+      "Leadership",
+      "Compliance",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Audit Manager.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-019",
+    "title": "HR Manager",
+    "category": "Human Resources",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in HR or Bachelor's in Business",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Compliance",
+      "Leadership",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a HR Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-020",
+    "title": "HR Business Partner",
+    "category": "Human Resources",
+    "department": "Operations",
+    "experience_years": 4,
+    "education": "Bachelor's in HR or Master's in Business",
+    "salary_range": "75-130K",
+    "required_skills": [
+      "Business Acumen",
+      "Data Analysis",
+      "Leadership"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a HR Business Partner.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-021",
+    "title": "HR Operations Manager",
+    "category": "Human Resources",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in HR or Bachelor's in Business",
+    "salary_range": "65-115K",
+    "required_skills": [
+      "Compliance",
+      "Data Analysis",
+      "Leadership",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a HR Operations Manager.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-022",
+    "title": "Marketing Manager",
+    "category": "Marketing & Sales",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in Marketing or Bachelor's in Business",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Budget Management",
+      "Leadership",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Marketing Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-023",
+    "title": "Product Manager",
+    "category": "Marketing & Sales",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in Business or Master's in Business",
+    "salary_range": "90-160K",
+    "required_skills": [
+      "Data Analysis",
+      "Leadership",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Product Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-024",
+    "title": "Business Development Manager",
+    "category": "Marketing & Sales",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in Business or Master's in Business",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Sales",
+      "Negotiation",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Business Development Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-025",
+    "title": "Operations Manager",
+    "category": "Operations & Supply Chain",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in Operations Management or Bachelor's in Business",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Leadership",
+      "Project Management",
+      "Data Analysis"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Operations Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-026",
+    "title": "Quality Assurance Manager",
+    "category": "Operations & Supply Chain",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in Engineering or Quality Certification",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Compliance",
+      "Leadership",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Quality Assurance Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-027",
+    "title": "Project Engineer",
+    "category": "Engineering & Manufacturing",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Engineering",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Project Management",
+      "Documentation",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Project Engineer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-028",
+    "title": "Real Estate Agent",
+    "category": "Construction & Real Estate",
+    "department": "Operations",
+    "experience_years": 0,
+    "education": "High School or Real Estate License",
+    "salary_range": "40-100K",
+    "required_skills": [
+      "Sales",
+      "Marketing",
+      "Negotiation",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Real Estate Agent.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-029",
+    "title": "Real Estate Broker",
+    "category": "Construction & Real Estate",
+    "department": "Operations",
+    "experience_years": 5,
+    "education": "Bachelor's in Business or Broker License",
+    "salary_range": "75-180K",
+    "required_skills": [
+      "Negotiation",
+      "Business Development",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Real Estate Broker.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-030",
+    "title": "Healthcare Administrator",
+    "category": "Healthcare",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Master's in Healthcare Administration",
+    "salary_range": "85-150K",
+    "required_skills": [
+      "Leadership",
+      "Compliance",
+      "Strategic Planning",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Healthcare Administrator.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-031",
+    "title": "UX Designer",
+    "category": "Creative & Design",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Design or UX Certification",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Wireframing",
+      "Prototyping",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a UX Designer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-032",
+    "title": "Web Designer",
+    "category": "Creative & Design",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in Design or Web Design Certification",
+    "salary_range": "55-110K",
+    "required_skills": [
+      "Web Design",
+      "HTML/CSS",
+      "User Experience",
+      "Responsive Design",
+      "Creativity"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Web Designer.",
+    "openings": 3
+  },
+  {
+    "role_id": "ROL-033",
+    "title": "Producer",
+    "category": "Entertainment & Media",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Production or Bachelor's in Communications",
+    "salary_range": "60-120K",
+    "required_skills": [
+      "Leadership",
+      "Problem Solving",
+      "Communication",
+      "Creativity"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Producer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-034",
+    "title": "Director",
+    "category": "Private Sector Management",
+    "department": "Operations",
+    "experience_years": 5,
+    "education": "Bachelor's in Business or Master's in Business",
+    "salary_range": "100-180K",
+    "required_skills": [
+      "Strategic Planning",
+      "Leadership",
+      "Decision Making",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Director.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-035",
+    "title": "Judge",
+    "category": "Legal Services",
+    "department": "Operations",
+    "experience_years": 10,
+    "education": "Juris Doctor or Bar License or Judicial Appointment",
+    "salary_range": "150-250K",
+    "required_skills": [
+      "Decision Making",
+      "Communication",
+      "Leadership"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Judge.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-036",
+    "title": "Management Consultant",
+    "category": "Consulting",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Master's in Business or MBA",
+    "salary_range": "90-180K",
+    "required_skills": [
+      "Problem Solving",
+      "Communication",
+      "Project Management"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Management Consultant.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-037",
+    "title": "Strategy Consultant",
+    "category": "Consulting",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "MBA or Master's in Strategy",
+    "salary_range": "100-200K",
+    "required_skills": [
+      "Communication",
+      "Problem Solving",
+      "Leadership"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Strategy Consultant.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-038",
+    "title": "Business Consultant",
+    "category": "Consulting",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Business or MBA",
+    "salary_range": "80-150K",
+    "required_skills": [
+      "Communication",
+      "Problem Solving",
+      "Data Analysis",
+      "Project Management"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Business Consultant.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-039",
+    "title": "IT Consultant",
+    "category": "Consulting",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Bachelor's in Computer Science or IT Certification",
+    "salary_range": "90-160K",
+    "required_skills": [
+      "Problem Solving",
+      "Communication",
+      "System Design",
+      "Project Management"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a IT Consultant.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-040",
+    "title": "Call Center Manager",
+    "category": "Sales & Customer Service",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "High School or Management Experience",
+    "salary_range": "50-90K",
+    "required_skills": [
+      "Leadership",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Call Center Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-041",
+    "title": "Product Researcher",
+    "category": "Research & Development",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Science or Master's in Research",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Data Analysis",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Product Researcher.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-042",
+    "title": "Office Manager",
+    "category": "Administration",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "High School or Leadership Experience",
+    "salary_range": "50-85K",
+    "required_skills": [
+      "Leadership",
+      "Communication",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Office Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-043",
+    "title": "Chief Executive Officer",
+    "category": "Private Sector Management",
+    "department": "Operations",
+    "experience_years": 10,
+    "education": "MBA or Master's in Business",
+    "salary_range": "200-500K",
+    "required_skills": [
+      "Decision Making",
+      "Business Acumen",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Chief Executive Officer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-044",
+    "title": "COO",
+    "category": "Private Sector Management",
+    "department": "Operations",
+    "experience_years": 10,
+    "education": "MBA or Master's in Business",
+    "salary_range": "180-400K",
+    "required_skills": [
+      "Leadership",
+      "Decision Making",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a COO.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-045",
+    "title": "Vice President",
+    "category": "Private Sector Management",
+    "department": "Operations",
+    "experience_years": 7,
+    "education": "Master's in Business or MBA",
+    "salary_range": "140-300K",
+    "required_skills": [
+      "Business Development",
+      "Decision Making",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Vice President.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-046",
+    "title": "General Manager",
+    "category": "Private Sector Management",
+    "department": "Operations",
+    "experience_years": 5,
+    "education": "Bachelor's in Business or Master's in Business",
+    "salary_range": "90-170K",
+    "required_skills": [
+      "Leadership",
+      "Strategic Planning",
+      "Decision Making",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a General Manager.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-047",
+    "title": "Public Administrator",
+    "category": "Government & Public Service",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Master's in Public Administration or MPA",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Leadership",
+      "Budget Management",
+      "Strategic Planning",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Public Administrator.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-048",
+    "title": "Safety Engineer",
+    "category": "Energy & Utilities",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Safety Engineering or Safety Certification",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Risk Assessment",
+      "Problem Solving",
+      "Communication",
+      "Leadership"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Safety Engineer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-049",
+    "title": "Event Coordinator",
+    "category": "Hospitality & Tourism",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Associate in Event Planning or Certification",
+    "salary_range": "45-85K",
+    "required_skills": [
+      "Communication",
+      "Problem Solving",
+      "Budget Management"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Event Coordinator.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-050",
+    "title": "Sports Manager",
+    "category": "Sports & Recreation",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Sports Management",
+    "salary_range": "60-120K",
+    "required_skills": [
+      "Leadership",
+      "Marketing",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Sports Manager.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-051",
+    "title": "Fitness Manager",
+    "category": "Sports & Recreation",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Associate in Fitness Management or High School",
+    "salary_range": "50-90K",
+    "required_skills": [
+      "Sales",
+      "Leadership",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Fitness Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-052",
+    "title": "Non-profit Director",
+    "category": "Non-profit & Charity",
+    "department": "Operations",
+    "experience_years": 5,
+    "education": "Master's in Non-profit Management or Master's in Business",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Strategic Planning",
+      "Budget Management",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Non-profit Director.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-053",
+    "title": "Fundraiser",
+    "category": "Non-profit & Charity",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in Communications or Fundraising Certification",
+    "salary_range": "50-100K",
+    "required_skills": [
+      "Communication",
+      "Sales",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Fundraiser.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-054",
+    "title": "Sustainability Consultant",
+    "category": "Environmental",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Environmental Science or MBA",
+    "salary_range": "70-140K",
+    "required_skills": [
+      "Business Acumen",
+      "Communication",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Sustainability Consultant.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-055",
+    "title": "AI/ML Specialist",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Master's in AI or Master's in Machine Learning",
+    "salary_range": "110-200K",
+    "required_skills": [
+      "Deep Learning",
+      "Python",
+      "TensorFlow",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a AI/ML Specialist.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-056",
+    "title": "DevSecOps Engineer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Bachelor's in Computer Science or Security Certification",
+    "salary_range": "110-180K",
+    "required_skills": [
+      "CI/CD",
+      "Compliance",
+      "Linux"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a DevSecOps Engineer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-057",
+    "title": "Solution Architect",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 5,
+    "education": "Master's in Computer Science or Architecture Certification",
+    "salary_range": "120-200K",
+    "required_skills": [
+      "Communication",
+      "Business Acumen",
+      "Leadership"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Solution Architect.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-058",
+    "title": "React Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science or Bootcamp",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "JavaScript",
+      "React",
+      "HTML/CSS"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a React Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-059",
+    "title": "Vue Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "60-115K",
+    "required_skills": [
+      "JavaScript",
+      "Vue.js",
+      "HTML/CSS"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Vue Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-060",
+    "title": "Angular Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "JavaScript",
+      "Angular",
+      "TypeScript",
+      "HTML/CSS"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Angular Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-061",
+    "title": "PHP Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "55-105K",
+    "required_skills": [
+      "PHP",
+      "MySQL",
+      "HTML/CSS"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a PHP Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-062",
+    "title": "Python Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Python",
+      "Django",
+      "Flask",
+      "SQL",
+      "REST APIs",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Python Developer.",
+    "openings": 4
+  },
+  {
+    "role_id": "ROL-063",
+    "title": "Ruby Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "65-125K",
+    "required_skills": [
+      "Ruby",
+      "SQL",
+      "HTML/CSS",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Ruby Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-064",
+    "title": "Go Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "80-140K",
+    "required_skills": [
+      "Go",
+      "Microservices",
+      "Docker",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Go Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-065",
+    "title": "Java Backend Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "75-135K",
+    "required_skills": [
+      "Java",
+      "SQL",
+      "REST APIs",
+      "Microservices"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Java Backend Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-066",
+    "title": "C# Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "C#",
+      "SQL",
+      "Azure"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a C# Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-067",
+    "title": "Scala Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "80-140K",
+    "required_skills": [
+      "Scala",
+      "SQL",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Scala Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-068",
+    "title": "Shell Script Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "60-110K",
+    "required_skills": [
+      "Bash/Shell",
+      "Linux",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Shell Script Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-069",
+    "title": "TypeScript Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "TypeScript",
+      "JavaScript",
+      "Node.js",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a TypeScript Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-070",
+    "title": "Jupyter Developer",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science or Data Science Certificate",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Python",
+      "Data Analysis",
+      "Documentation"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Jupyter Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-071",
+    "title": "MongoDB Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "75-135K",
+    "required_skills": [
+      "MongoDB",
+      "Nosql",
+      "JavaScript"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a MongoDB Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-072",
+    "title": "Spark Developer",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "85-150K",
+    "required_skills": [
+      "Python",
+      "Scala",
+      "SQL"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Spark Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-073",
+    "title": "Tableau Specialist",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in IT or Tableau Certification",
+    "salary_range": "65-120K",
+    "required_skills": [
+      "Tableau",
+      "SQL",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Tableau Specialist.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-074",
+    "title": "WordPress Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "High School or WordPress Certification",
+    "salary_range": "55-110K",
+    "required_skills": [
+      "PHP",
+      "JavaScript",
+      "HTML/CSS"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a WordPress Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-075",
+    "title": "Drupal Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "PHP",
+      "JavaScript",
+      "MySQL"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Drupal Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-076",
+    "title": "Magento Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "75-135K",
+    "required_skills": [
+      "PHP",
+      "JavaScript",
+      "MySQL",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Magento Developer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-077",
+    "title": "Joomla Developer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in Computer Science",
+    "salary_range": "60-115K",
+    "required_skills": [
+      "PHP",
+      "JavaScript",
+      "MySQL"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Joomla Developer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-078",
+    "title": "Privacy Officer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Master's in Law or Privacy Certification",
+    "salary_range": "85-150K",
+    "required_skills": [
+      "Compliance",
+      "Communication",
+      "Strategic Planning"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Privacy Officer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-079",
+    "title": "Compliance Officer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Bachelor's in Business or Compliance Certification",
+    "salary_range": "80-145K",
+    "required_skills": [
+      "Compliance",
+      "Documentation",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Compliance Officer.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-080",
+    "title": "Technical Writer",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 1,
+    "education": "Bachelor's in English or Technical Writing Certification",
+    "salary_range": "50-100K",
+    "required_skills": [
+      "Technical Writing",
+      "Documentation",
+      "Communication",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Technical Writer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-081",
+    "title": "Release Manager",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Bachelor's in IT",
+    "salary_range": "80-145K",
+    "required_skills": [
+      "Project Management",
+      "Documentation",
+      "Communication",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Release Manager.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-082",
+    "title": "IT Project Manager",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 3,
+    "education": "Bachelor's in IT or Project Management Certification",
+    "salary_range": "80-145K",
+    "required_skills": [
+      "Project Management",
+      "Leadership",
+      "Communication",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a IT Project Manager.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-083",
+    "title": "Scrum Master",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in IT or Scrum Master Certification",
+    "salary_range": "75-140K",
+    "required_skills": [
+      "Agile Methodologies",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Scrum Master.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-084",
+    "title": "Product Owner",
+    "category": "Technology",
+    "department": "Engineering",
+    "experience_years": 2,
+    "education": "Bachelor's in Business or Scrum Product Owner Certification",
+    "salary_range": "80-150K",
+    "required_skills": [
+      "Agile Methodologies",
+      "Communication",
+      "Leadership",
+      "Business Acumen"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Product Owner.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-085",
+    "title": "Academic Data Analyst",
+    "category": "Data & Analytics",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Master's in Data Science or PhD",
+    "salary_range": "70-130K",
+    "required_skills": [
+      "Python",
+      "R",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Academic Data Analyst.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-086",
+    "title": "Loss Prevention Manager",
+    "category": "Retail & Hospitality",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "High School or Security Training",
+    "salary_range": "50-85K",
+    "required_skills": [
+      "Problem Solving",
+      "Leadership",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Loss Prevention Manager.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-087",
+    "title": "Sales Associate",
+    "category": "Retail & Hospitality",
+    "department": "Operations",
+    "experience_years": 0,
+    "education": "High School",
+    "salary_range": "30-50K",
+    "required_skills": [
+      "Sales",
+      "Communication",
+      "Problem Solving",
+      "Teamwork"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Sales Associate.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-088",
+    "title": "Server",
+    "category": "Hospitality & Food Service",
+    "department": "Operations",
+    "experience_years": 0,
+    "education": "High School",
+    "salary_range": "30-50K",
+    "required_skills": [
+      "Communication",
+      "Problem Solving",
+      "Teamwork"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Server.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-089",
+    "title": "Wildlife Biologist",
+    "category": "Conservation",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Biology or Master's in Wildlife",
+    "salary_range": "50-90K",
+    "required_skills": [
+      "Data Analysis",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Wildlife Biologist.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-090",
+    "title": "Military Officer",
+    "category": "Law Enforcement",
+    "department": "Operations",
+    "experience_years": 3,
+    "education": "Military Academy or Bachelor's Degree",
+    "salary_range": "60-120K",
+    "required_skills": [
+      "Leadership",
+      "Strategic Planning",
+      "Communication",
+      "Problem Solving"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Military Officer.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-091",
+    "title": "Meteorologist",
+    "category": "Science & Research",
+    "department": "Operations",
+    "experience_years": 1,
+    "education": "Bachelor's in Meteorology",
+    "salary_range": "55-100K",
+    "required_skills": [
+      "Data Analysis",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Meteorologist.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-092",
+    "title": "Botanist",
+    "category": "Science & Research",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Botany or Master's preferred",
+    "salary_range": "60-110K",
+    "required_skills": [
+      "Data Analysis",
+      "Problem Solving",
+      "Communication"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Botanist.",
+    "openings": 5
+  },
+  {
+    "role_id": "ROL-093",
+    "title": "Sports Agent",
+    "category": "Sports & Athletics",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Business or Law",
+    "salary_range": "60-150K",
+    "required_skills": [
+      "Sales",
+      "Negotiation",
+      "Communication",
+      "Business Acumen"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Sports Agent.",
+    "openings": 2
+  },
+  {
+    "role_id": "ROL-094",
+    "title": "Exhibition Designer",
+    "category": "Arts & Culture",
+    "department": "Operations",
+    "experience_years": 2,
+    "education": "Bachelor's in Design or Museum Studies",
+    "salary_range": "50-90K",
+    "required_skills": [
+      "Creativity",
+      "Communication",
+      "Problem Solving",
+      "Project Management"
+    ],
+    "description": "Responsible for designing, delivering, and maintaining enterprise solutions as a Exhibition Designer.",
+    "openings": 2
+  },
+  {
+    "title": "Cloud Engineer",
+    "category": "Cloud Operations",
+    "department": "Infrastructure",
+    "experience_years": 3,
+    "education": "Bachelor's in Computer Science or Engineering",
+    "salary_range": "105-160K",
+    "required_skills": [
+      "AWS",
+      "Docker",
+      "Kubernetes",
+      "Linux",
+      "Terraform",
+      "CI/CD",
+      "Python"
+    ],
+    "description": "Architects, provisions, and maintains highly available enterprise cloud infrastructure.",
+    "openings": 5,
+    "role_id": "ROL-095"
+  },
+  {
+    "title": "Security Analyst",
+    "category": "Cybersecurity",
+    "department": "Information Security",
+    "experience_years": 3,
+    "education": "Bachelor's in Cybersecurity or Computer Science",
+    "salary_range": "95-150K",
+    "required_skills": [
+      "Cybersecurity",
+      "Network Security",
+      "Linux",
+      "Python",
+      "Problem Solving"
+    ],
+    "description": "Protects digital assets, identifies vulnerabilities, responds to security incidents, and audits compliance.",
+    "openings": 2,
+    "role_id": "ROL-096"
+  }
+]

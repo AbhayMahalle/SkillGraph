@@ -1,0 +1,273 @@
+[
+  {
+    "course_id": "CRS-001",
+    "title": "Python Programming Foundations",
+    "provider": "SkillGraph Academy",
+    "duration_weeks": 4,
+    "level": "Beginner",
+    "skills_taught": [
+      "Python"
+    ],
+    "prerequisites": [],
+    "description": "Master core Python syntax, OOP concepts, data structures, and standard libraries."
+  },
+  {
+    "course_id": "CRS-002",
+    "title": "Modern JavaScript & TypeScript Mastery",
+    "provider": "SkillGraph Academy",
+    "duration_weeks": 4,
+    "level": "Beginner",
+    "skills_taught": [
+      "JavaScript",
+      "TypeScript"
+    ],
+    "prerequisites": [],
+    "description": "Learn ES6+, asynchronous JavaScript, typing systems, and DOM manipulation."
+  },
+  {
+    "course_id": "CRS-003",
+    "title": "Linux System Administration & Shell Scripting",
+    "provider": "CloudOps Institute",
+    "duration_weeks": 3,
+    "level": "Beginner",
+    "skills_taught": [
+      "Linux",
+      "Bash/Shell"
+    ],
+    "prerequisites": [],
+    "description": "Command line mastery, file permissions, process management, and shell automation."
+  },
+  {
+    "course_id": "CRS-004",
+    "title": "Relational Databases & SQL Optimization",
+    "provider": "DataTech Labs",
+    "duration_weeks": 4,
+    "level": "Beginner",
+    "skills_taught": [
+      "SQL",
+      "PostgreSQL"
+    ],
+    "prerequisites": [],
+    "description": "Complex joins, indexing, query optimization, and schema normalization."
+  },
+  {
+    "course_id": "CRS-005",
+    "title": "Computer Networking & Web Protocols",
+    "provider": "CloudOps Institute",
+    "duration_weeks": 3,
+    "level": "Intermediate",
+    "skills_taught": [
+      "Network Security",
+      "REST APIs"
+    ],
+    "prerequisites": [
+      "CRS-003"
+    ],
+    "description": "TCP/IP stack, DNS, HTTP/HTTPS, SSL/TLS certificates, and load balancing."
+  },
+  {
+    "course_id": "CRS-006",
+    "title": "Cloud Computing Foundations with AWS",
+    "provider": "CloudOps Institute",
+    "duration_weeks": 5,
+    "level": "Intermediate",
+    "skills_taught": [
+      "AWS"
+    ],
+    "prerequisites": [
+      "CRS-003",
+      "CRS-005"
+    ],
+    "description": "EC2, S3, RDS, VPCs, IAM policies, and cloud cost management on AWS."
+  },
+  {
+    "course_id": "CRS-007",
+    "title": "Docker Containers & Microservices Essentials",
+    "provider": "DevOps Training Hub",
+    "duration_weeks": 4,
+    "level": "Intermediate",
+    "skills_taught": [
+      "Docker",
+      "Microservices"
+    ],
+    "prerequisites": [
+      "CRS-003"
+    ],
+    "description": "Container architecture, multi-stage Dockerfiles, Docker Compose, and networking."
+  },
+  {
+    "course_id": "CRS-008",
+    "title": "Kubernetes Container Orchestration at Scale",
+    "provider": "DevOps Training Hub",
+    "duration_weeks": 5,
+    "level": "Advanced",
+    "skills_taught": [
+      "Kubernetes"
+    ],
+    "prerequisites": [
+      "CRS-006",
+      "CRS-007"
+    ],
+    "description": "Pods, Deployments, Services, Ingress, Helm charts, and cluster auto-scaling."
+  },
+  {
+    "course_id": "CRS-009",
+    "title": "CI/CD Automation & Infrastructure as Code (Terraform)",
+    "provider": "DevOps Training Hub",
+    "duration_weeks": 4,
+    "level": "Advanced",
+    "skills_taught": [
+      "CI/CD",
+      "Terraform"
+    ],
+    "prerequisites": [
+      "CRS-006",
+      "CRS-007"
+    ],
+    "description": "GitHub Actions, automated test pipelines, and declarative cloud provisioning with Terraform."
+  },
+  {
+    "course_id": "CRS-010",
+    "title": "Modern Frontend Development with React",
+    "provider": "SkillGraph Academy",
+    "duration_weeks": 5,
+    "level": "Intermediate",
+    "skills_taught": [
+      "React",
+      "HTML/CSS",
+      "UI/UX Design"
+    ],
+    "prerequisites": [
+      "CRS-002"
+    ],
+    "description": "React hooks, state management, component architecture, and responsive styling."
+  },
+  {
+    "course_id": "CRS-011",
+    "title": "Backend Engineering with FastAPI & Microservices",
+    "provider": "SkillGraph Academy",
+    "duration_weeks": 4,
+    "level": "Intermediate",
+    "skills_taught": [
+      "FastAPI",
+      "REST APIs",
+      "Microservices"
+    ],
+    "prerequisites": [
+      "CRS-001",
+      "CRS-004"
+    ],
+    "description": "Asynchronous APIs with FastAPI, Pydantic validation, JWT security, and ORMs."
+  },
+  {
+    "course_id": "CRS-012",
+    "title": "Applied Data Analysis with Pandas & NumPy",
+    "provider": "DataTech Labs",
+    "duration_weeks": 4,
+    "level": "Intermediate",
+    "skills_taught": [
+      "Pandas",
+      "NumPy",
+      "Data Analysis",
+      "Data Visualization"
+    ],
+    "prerequisites": [
+      "CRS-001",
+      "CRS-004"
+    ],
+    "description": "Data wrangling, exploratory data analysis, time series manipulation, and Matplotlib."
+  },
+  {
+    "course_id": "CRS-013",
+    "title": "Machine Learning Algorithms with Scikit-Learn",
+    "provider": "DataTech Labs",
+    "duration_weeks": 6,
+    "level": "Advanced",
+    "skills_taught": [
+      "Machine Learning",
+      "Scikit-Learn"
+    ],
+    "prerequisites": [
+      "CRS-012"
+    ],
+    "description": "Supervised/unsupervised algorithms, cross-validation, feature engineering, and metrics."
+  },
+  {
+    "course_id": "CRS-014",
+    "title": "Deep Learning & NLP with PyTorch",
+    "provider": "DataTech Labs",
+    "duration_weeks": 6,
+    "level": "Advanced",
+    "skills_taught": [
+      "Deep Learning",
+      "Natural Language Processing",
+      "PyTorch"
+    ],
+    "prerequisites": [
+      "CRS-013"
+    ],
+    "description": "Neural network architectures, transformers, embeddings, and NLP pipelines."
+  },
+  {
+    "course_id": "CRS-015",
+    "title": "Production MLOps & Model Deployment",
+    "provider": "DataTech Labs",
+    "duration_weeks": 4,
+    "level": "Advanced",
+    "skills_taught": [
+      "Machine Learning",
+      "Docker"
+    ],
+    "prerequisites": [
+      "CRS-007",
+      "CRS-013"
+    ],
+    "description": "Model serving, experiment tracking, pipeline automation, and monitoring model drift."
+  },
+  {
+    "course_id": "CRS-016",
+    "title": "Enterprise Cybersecurity & Network Defense",
+    "provider": "CloudOps Institute",
+    "duration_weeks": 4,
+    "level": "Intermediate",
+    "skills_taught": [
+      "Cybersecurity",
+      "Network Security"
+    ],
+    "prerequisites": [
+      "CRS-005"
+    ],
+    "description": "Threat modeling, vulnerability scanning, security incident management, and hardening."
+  },
+  {
+    "course_id": "CRS-017",
+    "title": "System Design & Distributed Architecture",
+    "provider": "SkillGraph Academy",
+    "duration_weeks": 5,
+    "level": "Advanced",
+    "skills_taught": [
+      "System Design",
+      "Microservices"
+    ],
+    "prerequisites": [
+      "CRS-006",
+      "CRS-011"
+    ],
+    "description": "Scalability, CAP theorem, caching strategies, rate limiting, and fault tolerance."
+  },
+  {
+    "course_id": "CRS-018",
+    "title": "Agile Leadership & Cross-Functional Teamwork",
+    "provider": "SkillGraph Leadership",
+    "duration_weeks": 2,
+    "level": "Beginner",
+    "skills_taught": [
+      "Communication",
+      "Teamwork",
+      "Agile Methodologies",
+      "Leadership"
+    ],
+    "prerequisites": [],
+    "description": "Sprint planning, stakeholder management, code review culture, and effective collaboration."
+  }
+]

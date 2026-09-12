@@ -1,0 +1,114 @@
+{
+  "summary": {
+    "total_headcount": 142,
+    "open_positions": 28,
+    "projected_q4_hires": 35,
+    "internal_mobility_target_pct": 65,
+    "upskilling_active_employees": 46
+  },
+  "role_demands": [
+    {
+      "role_title": "Cloud Engineer",
+      "department": "Infrastructure",
+      "current_headcount": 6,
+      "projected_demand": 14,
+      "gap": 8,
+      "priority": "High",
+      "urgency_score": 92,
+      "top_internal_feeders": [
+        "Software Developer",
+        "DevOps Engineer",
+        "Backend Developer"
+      ]
+    },
+    {
+      "role_title": "Data Scientist",
+      "department": "Data Science",
+      "current_headcount": 5,
+      "projected_demand": 11,
+      "gap": 6,
+      "priority": "High",
+      "urgency_score": 88,
+      "top_internal_feeders": [
+        "Data Analyst",
+        "Software Developer"
+      ]
+    },
+    {
+      "role_title": "Machine Learning Engineer",
+      "department": "AI Engineering",
+      "current_headcount": 3,
+      "projected_demand": 8,
+      "gap": 5,
+      "priority": "Critical",
+      "urgency_score": 95,
+      "top_internal_feeders": [
+        "Data Scientist",
+        "Backend Developer"
+      ]
+    },
+    {
+      "role_title": "Full Stack Developer",
+      "department": "Engineering",
+      "current_headcount": 12,
+      "projected_demand": 18,
+      "gap": 6,
+      "priority": "Medium",
+      "urgency_score": 75,
+      "top_internal_feeders": [
+        "Frontend Developer",
+        "Backend Developer"
+      ]
+    },
+    {
+      "role_title": "Security Analyst",
+      "department": "Information Security",
+      "current_headcount": 4,
+      "projected_demand": 7,
+      "gap": 3,
+      "priority": "Medium",
+      "urgency_score": 70,
+      "top_internal_feeders": [
+        "DevOps Engineer",
+        "Backend Developer"
+      ]
+    }
+  ],
+  "top_skill_shortages": [
+    {
+      "skill": "Kubernetes",
+      "missing_count": 22,
+      "category": "Cloud & DevOps"
+    },
+    {
+      "skill": "AWS",
+      "missing_count": 19,
+      "category": "Cloud & DevOps"
+    },
+    {
+      "skill": "Machine Learning",
+      "missing_count": 16,
+      "category": "Data Science & AI"
+    },
+    {
+      "skill": "Docker",
+      "missing_count": 14,
+      "category": "Cloud & DevOps"
+    },
+    {
+      "skill": "CI/CD",
+      "missing_count": 13,
+      "category": "Cloud & DevOps"
+    },
+    {
+      "skill": "FastAPI",
+      "missing_count": 11,
+      "category": "Backend"
+    },
+    {
+      "skill": "TypeScript",
+      "missing_count": 10,
+      "category": "Web Development"
+    }
+  ]
+}
