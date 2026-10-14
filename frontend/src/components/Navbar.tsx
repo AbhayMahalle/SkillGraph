@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   Network, Compass, Target, GraduationCap, 
-  Sparkles, Users, Database, LogOut, UserCheck
+  Sparkles, Database, LogOut, UserCheck, 
+  LogIn, UserPlus, Shield
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -9,7 +10,7 @@ interface NavbarProps {
   setActiveTab: (tab: string) => void;
   currentUser: any;
   onLogout: () => void;
-  onSwitchUser: (role: string) => void;
+  onOpenAuth: (mode: 'login' | 'register') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,36 +18,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   currentUser,
   onLogout,
-  onSwitchUser
+  onOpenAuth
 }) => {
-  const isHR = currentUser?.role === 'HR';
-
-  const employeeNav = [
+  // Navigation tabs for authenticated users
+  const authNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Compass },
-    { id: 'profile', label: 'My Skills & Resume', icon: UserCheck },
+    { id: 'profile', label: 'My Skills & Security', icon: UserCheck },
     { id: 'roles', label: 'Role Explorer', icon: Target },
     { id: 'skill-gap', label: 'Skill Gap & Readiness', icon: Sparkles },
     { id: 'learning-path', label: 'Learning Roadmap', icon: GraduationCap },
-    { id: 'simulator', label: 'What-If Sandbox', icon: Sparkles },
+    { id: 'simulator', label: 'Career Sandbox', icon: Sparkles },
     { id: 'graph', label: 'SkillGraph 2D', icon: Network },
+    { id: 'datasets', label: 'Dataset Lineage', icon: Database },
   ];
 
-  const hrNav = [
-    { id: 'hr-dashboard', label: 'Workforce Overview', icon: Users },
-    { id: 'roles', label: 'Role Architecture', icon: Target },
+  // Navigation tabs for unauthenticated public visitors
+  const publicNavItems = [
+    { id: 'landing', label: 'Platform Vision', icon: Compass },
+    { id: 'roles', label: 'Role Explorer', icon: Target },
     { id: 'graph', label: 'SkillGraph 2D', icon: Network },
-    { id: 'datasets', label: 'Dataset Explorer', icon: Database },
+    { id: 'datasets', label: 'Dataset Lineage', icon: Database },
   ];
 
-  const navItems = isHR ? hrNav : employeeNav;
+  const currentNavItems = currentUser ? authNavItems : publicNavItems;
 
   return (
     <header style={{
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      background: 'rgba(10, 13, 20, 0.85)',
+      background: 'rgba(10, 13, 20, 0.88)',
       backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--border-subtle)',
       padding: '0 24px'
     }}>
@@ -89,13 +92,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
               <span className="badge badge-cyan" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>AI Talent</span>
             </div>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Predictive Internal Mobility</p>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Self-Service Career Intelligence</p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: 4, overflowX: 'auto' }}>
-          {navItems.map((item) => {
+          {currentNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
@@ -126,64 +129,94 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
         </nav>
 
-        {/* User Info & Switcher */}
+        {/* Authentication State and Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '6px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10
-          }}>
-            <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: isHR ? 'linear-gradient(135deg, #f43f5e, #f59e0b)' : 'linear-gradient(135deg, #06b6d4, #6366f1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.85rem'
-            }}>
-              {currentUser?.full_name?.charAt(0) || 'U'}
-            </div>
-            <div style={{ lineHeight: 1.2 }}>
-              <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>{currentUser?.full_name}</p>
-              <span className={`badge ${isHR ? 'badge-amber' : 'badge-emerald'}`} style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
-                {currentUser?.role === 'HR' ? 'HR Director' : 'Employee'}
-              </span>
-            </div>
-          </div>
+          {currentUser ? (
+            <>
+              {/* Authenticated User Badge & Profile shortcut */}
+              <div 
+                onClick={() => setActiveTab('profile')}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '6px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s ease'
+                }}
+                title="View and edit your personal profile"
+              >
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #06b6d4, #6366f1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  color: '#ffffff'
+                }}>
+                  {currentUser?.full_name?.charAt(0) || 'U'}
+                </div>
+                <div style={{ lineHeight: 1.2 }}>
+                  <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>
+                    {currentUser?.full_name}
+                  </p>
+                  <span className="badge badge-emerald" style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                    Personal Profile
+                  </span>
+                </div>
+              </div>
 
-          {/* Quick Switcher Button */}
-          <button
-            onClick={() => onSwitchUser(isHR ? 'EMPLOYEE' : 'HR')}
-            className="btn btn-secondary"
-            style={{ fontSize: '0.78rem', padding: '6px 10px' }}
-            title={`Switch to ${isHR ? 'Employee view' : 'HR Admin view'}`}
-          >
-            Switch to {isHR ? 'Employee' : 'HR Admin'}
-          </button>
-
-          <button
-            onClick={onLogout}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-dim)',
-              cursor: 'pointer',
-              padding: 8,
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-            title="Log out"
-          >
-            <LogOut size={18} />
-          </button>
+              {/* Sign Out Button */}
+              <button
+                onClick={onLogout}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '7px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: '0.82rem',
+                  fontWeight: 500,
+                  transition: 'all 0.2s ease'
+                }}
+                title="Sign out of current account"
+              >
+                <LogOut size={16} />
+                <span>Sign Out</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Unauthenticated Actions */}
+              <button
+                onClick={() => onOpenAuth('login')}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.85rem', padding: '8px 14px', gap: 6 }}
+              >
+                <LogIn size={16} />
+                <span>Sign In</span>
+              </button>
+              <button
+                onClick={() => onOpenAuth('register')}
+                className="btn btn-primary"
+                style={{ fontSize: '0.85rem', padding: '8px 16px', gap: 6 }}
+              >
+                <UserPlus size={16} />
+                <span>Register</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
