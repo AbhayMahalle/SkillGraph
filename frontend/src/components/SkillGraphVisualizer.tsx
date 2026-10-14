@@ -72,7 +72,7 @@ export const SkillGraphVisualizer: React.FC = () => {
           ctx.beginPath();
           ctx.moveTo(source.x, source.y);
           ctx.lineTo(target.x, target.y);
-          ctx.strokeStyle = edge.color || 'rgba(255, 255, 255, 0.15)';
+          ctx.strokeStyle = edge.color || 'rgba(148, 163, 184, 0.35)';
           ctx.lineWidth = 1;
           ctx.stroke();
         }
@@ -87,7 +87,7 @@ export const SkillGraphVisualizer: React.FC = () => {
         if (isSelected) {
           ctx.beginPath();
           ctx.arc(n.x, n.y, radius + 6, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          ctx.fillStyle = 'rgba(79, 70, 229, 0.18)';
           ctx.fill();
         }
 
@@ -98,7 +98,7 @@ export const SkillGraphVisualizer: React.FC = () => {
 
         // Label
         ctx.font = '10px Inter, sans-serif';
-        ctx.fillStyle = isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.75)';
+        ctx.fillStyle = isSelected ? '#0f172a' : '#475569';
         ctx.textAlign = 'center';
         ctx.fillText(n.label || n.id, n.x, n.y + radius + 12);
       });
@@ -148,20 +148,20 @@ export const SkillGraphVisualizer: React.FC = () => {
         </div>
 
         {/* Legend */}
-        <div style={{ display: 'flex', gap: 14, background: 'rgba(255, 255, 255, 0.03)', padding: '8px 16px', borderRadius: 'var(--radius-md)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+        <div style={{ display: 'flex', gap: 14, background: '#f8fafc', border: '1px solid var(--border-subtle)', padding: '8px 16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#3b82f6', display: 'inline-block' }} />
             <span>Employee</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
             <span>Skill</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#8b5cf6', display: 'inline-block' }} />
             <span>Role</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
             <span>Course</span>
           </div>
@@ -195,9 +195,9 @@ export const SkillGraphVisualizer: React.FC = () => {
                 padding: '6px 12px',
                 borderRadius: 9999,
                 border: '1px solid',
-                borderColor: selectedType === t ? 'var(--accent-purple)' : 'var(--border-subtle)',
-                background: selectedType === t ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255, 255, 255, 0.03)',
-                color: selectedType === t ? '#c084fc' : 'var(--text-muted)',
+                borderColor: selectedType === t ? '#c7d2fe' : 'var(--border-subtle)',
+                background: selectedType === t ? '#f5f3ff' : '#ffffff',
+                color: selectedType === t ? '#6d28d9' : 'var(--text-secondary)',
                 fontSize: '0.78rem',
                 fontWeight: 600,
                 cursor: 'pointer'
@@ -211,9 +211,9 @@ export const SkillGraphVisualizer: React.FC = () => {
 
       {/* Canvas Area & Inspector */}
       <div style={{ display: 'grid', gridTemplateColumns: selectedNode ? '1fr 320px' : '1fr', gap: 20 }}>
-        <div className="glass-panel" style={{ padding: 12, position: 'relative', overflow: 'hidden' }}>
+        <div className="saas-card" style={{ padding: 12, position: 'relative', overflow: 'hidden' }}>
           {loading && (
-            <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-cyan)' }}>
+            <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', alignItems: 'center', gap: 8, color: '#0284c7' }}>
               <RefreshCw size={16} className="animate-spin" /> Loading Graph...
             </div>
           )}
@@ -223,7 +223,7 @@ export const SkillGraphVisualizer: React.FC = () => {
             width={850}
             height={550}
             onClick={handleCanvasClick}
-            style={{ width: '100%', height: 550, background: 'rgba(5, 8, 15, 0.6)', borderRadius: 'var(--radius-md)', cursor: 'crosshair' }}
+            style={{ width: '100%', height: 550, background: '#f8fafc', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', cursor: 'crosshair' }}
           />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-dim)', padding: '8px 4px 0' }}>
@@ -234,13 +234,13 @@ export const SkillGraphVisualizer: React.FC = () => {
 
         {/* Node Inspector Sidebar */}
         {selectedNode && (
-          <div className="glass-panel" style={{ padding: 22 }}>
+          <div className="saas-card" style={{ padding: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
               <div>
                 <span className="badge" style={{ background: selectedNode.color, color: '#fff', fontSize: '0.65rem' }}>
                   {selectedNode.type}
                 </span>
-                <h3 style={{ fontSize: '1.25rem', marginTop: 6 }}>{selectedNode.label}</h3>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-main)', marginTop: 6 }}>{selectedNode.label}</h3>
               </div>
               <button onClick={() => setSelectedNode(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>
                 ✕

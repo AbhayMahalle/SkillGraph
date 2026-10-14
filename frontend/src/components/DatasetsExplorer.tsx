@@ -42,11 +42,11 @@ export const DatasetsExplorer: React.FC = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* 1. Job Skill Set */}
-        <div className="glass-panel" style={{ padding: 26 }}>
+        <div className="saas-card" style={{ padding: 26 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <h3 style={{ fontSize: '1.3rem' }}>1. Job Skill Set Dataset</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>1. Job Skill Set Dataset</h3>
                 <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>all_job_post.csv</span>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -75,11 +75,11 @@ export const DatasetsExplorer: React.FC = () => {
         </div>
 
         {/* 2. Resume Dataset */}
-        <div className="glass-panel" style={{ padding: 26 }}>
+        <div className="saas-card" style={{ padding: 26 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <h3 style={{ fontSize: '1.3rem' }}>2. Resume Dataset & Role Profiles</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>2. Resume Dataset & Role Profiles</h3>
                 <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>job_roles.csv & training_data.csv</span>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -108,11 +108,11 @@ export const DatasetsExplorer: React.FC = () => {
         </div>
 
         {/* 3. Candidate Job Role Dataset */}
-        <div className="glass-panel" style={{ padding: 26 }}>
+        <div className="saas-card" style={{ padding: 26 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <h3 style={{ fontSize: '1.3rem' }}>3. Candidate–Job Role Dataset</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>3. Candidate–Job Role Dataset</h3>
                 <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>candidate_job_role_dataset.csv</span>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -141,11 +141,11 @@ export const DatasetsExplorer: React.FC = () => {
         </div>
 
         {/* 4. ONET Database 29.0 */}
-        <div className="glass-panel" style={{ padding: 26 }}>
+        <div className="saas-card" style={{ padding: 26 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <h3 style={{ fontSize: '1.3rem' }}>4. O*NET 29.0 Database</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)' }}>4. O*NET 29.0 Database</h3>
                 <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>db_29_0_text/</span>
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>

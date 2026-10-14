@@ -101,9 +101,9 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 26 }}>
         {/* Left Panel: Simulation Controls */}
-        <div className="glass-panel" style={{ padding: 28 }}>
+        <div className="saas-card" style={{ padding: 28 }}>
           <div style={{ marginBottom: 22 }}>
-            <label style={{ fontSize: '0.82rem', color: '#38bdf8', fontWeight: 600, display: 'block', marginBottom: 6 }}>
+            <label style={{ fontSize: '0.82rem', color: 'var(--text-main)', fontWeight: 600, display: 'block', marginBottom: 6 }}>
               Select Target Role Scenario
             </label>
             <select
@@ -113,7 +113,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
               style={{ cursor: 'pointer' }}
             >
               {allRoles.map((r) => (
-                <option key={r.role_id} value={r.role_id} style={{ background: '#1e293b' }}>
+                <option key={r.role_id} value={r.role_id}>
                   {r.title} ({r.department})
                 </option>
               ))}
@@ -139,16 +139,16 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
                       padding: '6px 12px',
                       borderRadius: 9999,
                       border: '1px solid',
-                      borderColor: isActive ? 'var(--accent-cyan)' : 'var(--border-subtle)',
-                      background: isActive ? 'rgba(6, 182, 212, 0.2)' : 'rgba(255, 255, 255, 0.03)',
-                      color: isActive ? '#38bdf8' : 'var(--text-muted)',
+                      borderColor: isActive ? '#7dd3fc' : 'var(--border-subtle)',
+                      background: isActive ? '#e0f2fe' : '#ffffff',
+                      color: isActive ? '#0369a1' : 'var(--text-secondary)',
                       fontSize: '0.8rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    {isActive ? <CheckCircle2 size={13} color="#38bdf8" /> : <PlusCircle size={13} />}
+                    {isActive ? <CheckCircle2 size={13} color="#0284c7" /> : <PlusCircle size={13} />}
                     {sk}
                   </button>
                 );
@@ -175,8 +175,8 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
                       padding: '10px 14px',
                       borderRadius: 'var(--radius-sm)',
                       border: '1px solid',
-                      borderColor: isActive ? 'var(--accent-indigo)' : 'var(--border-subtle)',
-                      background: isActive ? 'rgba(99, 102, 241, 0.14)' : 'rgba(255, 255, 255, 0.02)',
+                      borderColor: isActive ? '#c7d2fe' : 'var(--border-subtle)',
+                      background: isActive ? '#f5f3ff' : '#ffffff',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease'
                     }}
@@ -188,7 +188,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
                       style={{ cursor: 'pointer' }}
                     />
                     <div style={{ flex: 1 }}>
-                      <strong style={{ fontSize: '0.88rem', color: '#fff', display: 'block' }}>{c.title}</strong>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-main)', display: 'block' }}>{c.title}</strong>
                       <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
                         {c.course_id} • {c.duration_weeks} Weeks
                       </span>
@@ -201,7 +201,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
         </div>
 
         {/* Right Panel: Real-Time Simulation Results */}
-        <div className="glass-panel" style={{ padding: 28, position: 'relative' }}>
+        <div className="saas-card" style={{ padding: 28, position: 'relative' }}>
           {loading && (
             <div style={{
               position: 'absolute',
@@ -211,13 +211,13 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
               alignItems: 'center',
               gap: 6,
               fontSize: '0.78rem',
-              color: 'var(--accent-cyan)'
+              color: '#0284c7'
             }}>
               <RefreshCw size={14} className="animate-spin" /> Recalculating...
             </div>
           )}
 
-          <h3 style={{ fontSize: '1.35rem', marginBottom: 4 }}>Live Transition Feasibility</h3>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: 4 }}>Live Transition Feasibility</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 24 }}>
             Direct comparison: Baseline status vs Simulated upskilling profile
           </p>
@@ -226,7 +226,8 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* Score Surge Comparison */}
               <div style={{
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: '#f8fafc',
+                border: '1px solid var(--border-subtle)',
                 padding: 20,
                 borderRadius: 'var(--radius-md)',
                 display: 'grid',
@@ -237,11 +238,11 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
               }}>
                 <div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Baseline Match</span>
-                  <h4 style={{ fontSize: '2rem', color: 'var(--text-muted)' }}>{simResult.baseline?.match_score}%</h4>
+                  <h4 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{simResult.baseline?.match_score}%</h4>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{simResult.baseline?.mobility_status}</span>
                 </div>
 
-                <div style={{ color: 'var(--accent-cyan)' }}>
+                <div style={{ color: '#0284c7' }}>
                   <ArrowRight size={26} />
                   <span className="badge badge-emerald" style={{ fontSize: '0.68rem', display: 'block', marginTop: 4 }}>
                     +{simResult.deltas?.match_gain}%
@@ -249,8 +250,8 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 600 }}>Simulated Match</span>
-                  <h4 style={{ fontSize: '2.2rem', color: 'var(--accent-cyan)' }}>{simResult.simulated?.match_score}%</h4>
+                  <span style={{ fontSize: '0.75rem', color: '#0284c7', textTransform: 'uppercase', fontWeight: 600 }}>Simulated Match</span>
+                  <h4 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#0284c7' }}>{simResult.simulated?.match_score}%</h4>
                   <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
                     {simResult.simulated?.mobility_status}
                   </span>
@@ -259,24 +260,25 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
 
               {/* Readiness Prediction Gauge */}
               <div style={{
-                background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(99, 102, 241, 0.1))',
-                border: '1px solid rgba(6, 182, 212, 0.3)',
+                background: '#ffffff',
+                border: '1px solid #bae6fd',
                 padding: 22,
-                borderRadius: 'var(--radius-md)'
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'var(--shadow-sm)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Zap size={18} color="#38bdf8" />
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>ML Predicted Readiness</span>
+                    <Zap size={18} color="#0284c7" />
+                    <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)' }}>ML Predicted Readiness</span>
                   </div>
-                  <strong style={{ fontSize: '1.6rem', color: '#34d399' }}>
+                  <strong style={{ fontSize: '1.6rem', fontWeight: 700, color: '#059669' }}>
                     {simResult.simulated?.projected_readiness_pct}%
                   </strong>
                 </div>
 
                 <div style={{
                   height: 8,
-                  background: 'rgba(255, 255, 255, 0.1)',
+                  background: '#e2e8f0',
                   borderRadius: 4,
                   overflow: 'hidden',
                   marginBottom: 10
@@ -284,15 +286,15 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
                   <div style={{
                     width: `${simResult.simulated?.projected_readiness_pct}%`,
                     height: '100%',
-                    background: 'linear-gradient(90deg, #06b6d4, #10b981)',
+                    background: 'linear-gradient(90deg, #0284c7, #10b981)',
                     borderRadius: 4,
                     transition: 'width 0.4s ease'
                   }} />
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <span>Verdict: <strong style={{ color: '#fff' }}>{simResult.simulated?.readiness_verdict}</strong></span>
-                  <span>Skills closed: <strong style={{ color: '#34d399' }}>{simResult.deltas?.skills_closed}</strong></span>
+                  <span>Verdict: <strong style={{ color: 'var(--text-main)' }}>{simResult.simulated?.readiness_verdict}</strong></span>
+                  <span>Skills closed: <strong style={{ color: '#059669' }}>{simResult.deltas?.skills_closed}</strong></span>
                 </div>
               </div>
 
@@ -302,7 +304,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
                   Remaining Missing Competencies ({simResult.simulated?.missing_skills?.length || 0})
                 </span>
                 {simResult.simulated?.missing_skills?.length === 0 ? (
-                  <div style={{ color: '#34d399', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ color: '#059669', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
                     <CheckCircle2 size={16} /> 100% Competency coverage achieved in this scenario!
                   </div>
                 ) : (

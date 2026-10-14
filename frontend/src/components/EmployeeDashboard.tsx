@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   Target, Sparkles, TrendingUp, Award, 
-  ArrowRight, BookOpen, CheckCircle, ChevronRight 
+  ArrowRight, BookOpen, CheckCircle, ChevronRight,
+  Briefcase, Compass, FileText, AlertCircle
 } from 'lucide-react';
 
 interface EmployeeDashboardProps {
@@ -20,13 +21,11 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
   const targetRoleRec = recommendations.find(r => r.role_id === profile?.target_role_id) || recommendations[0];
 
   return (
-    <div style={{ maxWidth: 1300, margin: '0 auto', padding: '30px 20px 60px' }}>
-      {/* Top Banner */}
-      <div className="glass-panel" style={{
-        padding: 32,
-        marginBottom: 30,
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9))',
-        border: '1px solid rgba(99, 102, 241, 0.25)',
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px 48px' }}>
+      {/* Top Welcome Card */}
+      <div className="saas-card" style={{
+        padding: '24px 28px',
+        marginBottom: 24,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -34,30 +33,34 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
         gap: 20
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <span className="badge badge-cyan">Employee Career Hub</span>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)' }}>ID: {profile?.employee_id}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
+              Personal Career Workspace
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              ID: {profile?.employee_id || 'EMP-001'}
+            </span>
           </div>
-          <h2 style={{ fontSize: '2rem', marginBottom: 6 }}>
-            Welcome back, {profile?.name}
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: 4 }}>
+            Welcome back, {profile?.name || 'Professional'}
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Current: <strong style={{ color: '#fff' }}>{profile?.current_role}</strong> • Department: <strong style={{ color: '#fff' }}>{profile?.department}</strong>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Current: <strong>{profile?.current_role || 'Software Engineer'}</strong> • Department: <strong>{profile?.department || 'Engineering'}</strong>
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button 
-            onClick={() => onNavigateTab('simulator')}
+            onClick={() => onNavigateTab('skill-gap')}
             className="btn btn-primary"
           >
-            <Sparkles size={16} /> Open What-If Simulator
+            <Target size={15} /> Analyze Target Gap
           </button>
           <button 
             onClick={() => onNavigateTab('profile')}
             className="btn btn-secondary"
           >
-            Update Resume & Skills
+            <FileText size={15} /> Update Skills
           </button>
         </div>
       </div>
@@ -66,208 +69,233 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: 20,
-        marginBottom: 36
+        gap: 16,
+        marginBottom: 28
       }}>
-        {/* Target Role Card */}
-        <div className="glass-panel" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
+        {/* Designated Target Role Card */}
+        <div className="saas-card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
               Designated Target Role
             </span>
-            <Target size={18} color="#38bdf8" />
+            <Target size={16} color="var(--accent-blue)" />
           </div>
-          <h3 style={{ fontSize: '1.35rem', color: '#fff', marginBottom: 4 }}>
+          <h3 style={{ fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: 600, marginBottom: 4 }}>
             {profile?.target_role_title || targetRoleRec?.title || 'Cloud Engineer'}
           </h3>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            {targetRoleRec?.openings || 5} open internal requisitions
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+            {targetRoleRec?.openings ? `${targetRoleRec.openings} open requisitions` : 'Active career goal'}
           </p>
         </div>
 
         {/* Current Match */}
-        <div className="glass-panel" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
+        <div className="saas-card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
               Current Skill Match
             </span>
-            <TrendingUp size={18} color="#818cf8" />
+            <TrendingUp size={16} color="var(--accent-indigo)" />
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-            <h3 style={{ fontSize: '1.9rem', color: '#818cf8' }}>
-              {targetRoleRec?.match_score || 41.2}%
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+            <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--accent-blue)' }}>
+              {targetRoleRec?.match_score != null ? `${targetRoleRec.match_score}%` : '41.2%'}
             </h3>
             <span className="badge badge-purple" style={{ fontSize: '0.68rem' }}>
               {targetRoleRec?.mobility_status || 'Needs Upskilling'}
             </span>
           </div>
           <div style={{
-            height: 6,
-            background: 'rgba(255, 255, 255, 0.08)',
-            borderRadius: 3,
+            height: 4,
+            background: 'var(--bg-muted)',
+            borderRadius: 2,
             overflow: 'hidden'
           }}>
             <div style={{
               width: `${targetRoleRec?.match_score || 41}%`,
               height: '100%',
-              background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
-              borderRadius: 3
+              background: 'var(--accent-blue)',
+              borderRadius: 2
             }} />
           </div>
         </div>
 
         {/* Projected Readiness */}
-        <div className="glass-panel" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
+        <div className="saas-card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
               Projected Readiness
             </span>
-            <Sparkles size={18} color="#34d399" />
+            <Sparkles size={16} color="var(--accent-emerald)" />
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-            <h3 style={{ fontSize: '1.9rem', color: '#34d399' }}>
-              {targetRoleRec?.projected_readiness_pct || 90.5}%
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+            <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>
+              {targetRoleRec?.projected_readiness_pct != null ? `${targetRoleRec.projected_readiness_pct}%` : '90.5%'}
             </h3>
             <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>High Feasibility</span>
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            After completing 5 topological roadmap courses
+            Estimated post-curriculum completion
           </p>
         </div>
 
         {/* Verified Skills */}
-        <div className="glass-panel" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>
-              Verified Skill Inventory
+        <div className="saas-card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+              Skills & Courses
             </span>
-            <Award size={18} color="#fbbf24" />
+            <Award size={16} color="var(--accent-amber)" />
           </div>
-          <h3 style={{ fontSize: '1.9rem', color: '#fbbf24', marginBottom: 4 }}>
-            {profile?.skills?.length || 6}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+            <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: 4 }}>
+              {profile?.skills?.length || 0}
+            </h3>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>demonstrated skills</span>
+          </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            {profile?.completed_courses?.length || 3} courses completed
+            {profile?.completed_courses?.length || 0} completed curriculum courses
           </p>
         </div>
       </div>
 
       {/* Role Recommendations Table / Grid */}
-      <div className="glass-panel" style={{ padding: 28 }}>
+      <div className="saas-card" style={{ padding: '24px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h3 style={{ fontSize: '1.35rem', marginBottom: 4 }}>Top Internal Transition Opportunities</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: 2 }}>
+              Top Internal Transition Opportunities
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               Ranked by multi-factor algorithmic compatibility with your verified skills and experience
             </p>
           </div>
           <button 
             onClick={() => onNavigateTab('roles')}
             className="btn btn-secondary" 
-            style={{ fontSize: '0.85rem' }}
+            style={{ fontSize: '0.82rem' }}
           >
-            Browse All 96 Roles <ArrowRight size={15} />
+            <span>Browse All 96 Roles</span>
+            <ArrowRight size={14} />
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {recommendations.slice(0, 5).map((rec) => {
-            const isTarget = rec.role_id === profile?.target_role_id;
-            return (
-              <div
-                key={rec.role_id}
-                style={{
-                  background: isTarget ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                  border: isTarget ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '18px 22px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 16,
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ minWidth: 260 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <h4 style={{ fontSize: '1.15rem' }}>{rec.title}</h4>
-                    {isTarget && (
-                      <span className="badge badge-cyan" style={{ fontSize: '0.65rem' }}>Current Target</span>
-                    )}
+        {recommendations && recommendations.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {recommendations.slice(0, 5).map((rec) => {
+              const isTarget = rec.role_id === profile?.target_role_id;
+              return (
+                <div
+                  key={rec.role_id}
+                  style={{
+                    background: isTarget ? '#eff6ff' : '#ffffff',
+                    border: isTarget ? '1px solid #bfdbfe' : '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 16,
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div style={{ minWidth: 240 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>{rec.title}</h4>
+                      {isTarget && (
+                        <span className="badge badge-cyan" style={{ fontSize: '0.65rem' }}>Current Target</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {rec.department} • Experience: {rec.experience_years}y • Salary: {rec.salary_range}
+                    </p>
                   </div>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    {rec.department} • Salary Range: {rec.salary_range} • {rec.openings} Openings
-                  </p>
-                </div>
 
-                {/* Score & Bar */}
-                <div style={{ minWidth: 200, flex: 1, maxWidth: 300 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: 6 }}>
-                    <span style={{ color: 'var(--text-dim)' }}>Match: <strong style={{ color: '#fff' }}>{rec.match_score}%</strong></span>
-                    <span style={{ color: '#34d399' }}>Projected: <strong>{rec.projected_readiness_pct}%</strong></span>
-                  </div>
-                  <div style={{
-                    height: 6,
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    borderRadius: 3,
-                    overflow: 'hidden'
-                  }}>
+                  {/* Match Score & Progress Bar */}
+                  <div style={{ minWidth: 180, flex: 1, maxWidth: 260 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: 6 }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        Match: <strong style={{ color: 'var(--text-main)' }}>{rec.match_score}%</strong>
+                      </span>
+                      <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>
+                        {rec.projected_readiness_pct != null ? `${rec.projected_readiness_pct}% Projected` : ''}
+                      </span>
+                    </div>
                     <div style={{
-                      width: `${rec.match_score}%`,
-                      height: '100%',
-                      background: rec.match_score >= 60 ? 'linear-gradient(90deg, #10b981, #06b6d4)' : 'linear-gradient(90deg, #f59e0b, #6366f1)',
-                      borderRadius: 3
-                    }} />
+                      height: 4,
+                      background: 'var(--bg-muted)',
+                      borderRadius: 2,
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${rec.match_score}%`,
+                        height: '100%',
+                        background: rec.match_score >= 60 ? 'var(--accent-emerald)' : 'var(--accent-blue)',
+                        borderRadius: 2
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Missing Skills Pill */}
+                  <div style={{ minWidth: 200 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>
+                      Priority Missing Skills
+                    </span>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {rec.missing_skills.slice(0, 3).map((sk: string) => (
+                        <span key={sk} className="badge badge-rose" style={{ fontSize: '0.68rem' }}>
+                          {sk}
+                        </span>
+                      ))}
+                      {rec.missing_skills.length > 3 && (
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', alignSelf: 'center' }}>
+                          +{rec.missing_skills.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => {
+                        onSelectRole(rec.role_id);
+                        onNavigateTab('skill-gap');
+                      }}
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                    >
+                      View Gap
+                    </button>
+                    <button
+                      onClick={() => {
+                        onSelectRole(rec.role_id);
+                        onNavigateTab('learning-path');
+                      }}
+                      className="btn btn-primary"
+                      style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                    >
+                      Roadmap <ChevronRight size={13} />
+                    </button>
                   </div>
                 </div>
-
-                {/* Missing Skills Pill */}
-                <div style={{ minWidth: 220 }}>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>
-                    Top Missing Skills
-                  </span>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {rec.missing_skills.slice(0, 3).map((sk: string) => (
-                      <span key={sk} className="badge badge-rose" style={{ fontSize: '0.7rem' }}>
-                        {sk}
-                      </span>
-                    ))}
-                    {rec.missing_skills.length > 3 && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', alignSelf: 'center' }}>
-                        +{rec.missing_skills.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => {
-                      onSelectRole(rec.role_id);
-                      onNavigateTab('skill-gap');
-                    }}
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                  >
-                    View Gap
-                  </button>
-                  <button
-                    onClick={() => {
-                      onSelectRole(rec.role_id);
-                      onNavigateTab('learning-path');
-                    }}
-                    className="btn btn-primary"
-                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                  >
-                    Roadmap <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+            <AlertCircle size={28} style={{ margin: '0 auto 10px', color: 'var(--text-dim)' }} />
+            <p style={{ fontWeight: 500, fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: 4 }}>
+              No Recommendations Generated Yet
+            </p>
+            <p style={{ fontSize: '0.85rem', marginBottom: 16 }}>
+              Add personal competencies to your profile to receive personalized internal role matches.
+            </p>
+            <button onClick={() => onNavigateTab('profile')} className="btn btn-primary">
+              Build Skill Profile
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

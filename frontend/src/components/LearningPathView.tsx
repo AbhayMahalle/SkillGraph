@@ -80,7 +80,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
             style={{ width: 220, cursor: 'pointer' }}
           >
             {allRoles.map((r) => (
-              <option key={r.role_id} value={r.role_id} style={{ background: '#1e293b' }}>
+              <option key={r.role_id} value={r.role_id}>
                 {r.title}
               </option>
             ))}
@@ -96,7 +96,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
       </div>
 
       {/* Summary Banner */}
-      <div className="glass-panel" style={{
+      <div className="saas-card" style={{
         padding: 24,
         marginBottom: 36,
         display: 'flex',
@@ -106,20 +106,20 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
         gap: 20
       }}>
         <div>
-          <h4 style={{ fontSize: '1.1rem', marginBottom: 4 }}>Roadmap Summary</h4>
+          <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: 4 }}>Roadmap Summary</h4>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-            Closing <strong style={{ color: '#fb7185' }}>{pathData.missing_skills?.length || 0} skill gaps</strong> with strictly ordered prerequisite progression.
+            Closing <strong style={{ color: '#e11d48' }}>{pathData.missing_skills?.length || 0} skill gaps</strong> with strictly ordered prerequisite progression.
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: 24 }}>
           <div style={{ textAlign: 'center' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', textTransform: 'uppercase', display: 'block' }}>Required Courses</span>
-            <strong style={{ fontSize: '1.6rem', color: '#fff' }}>{milestones.length}</strong>
+            <strong style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-main)' }}>{milestones.length}</strong>
           </div>
           <div style={{ textAlign: 'center' }}>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', textTransform: 'uppercase', display: 'block' }}>Estimated Timeline</span>
-            <strong style={{ fontSize: '1.6rem', color: 'var(--accent-cyan)' }}>{totalWeeks} Weeks</strong>
+            <strong style={{ fontSize: '1.6rem', fontWeight: 700, color: '#0284c7' }}>{totalWeeks} Weeks</strong>
           </div>
         </div>
       </div>
@@ -133,18 +133,18 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
           top: 20,
           bottom: 20,
           width: 2,
-          background: 'linear-gradient(180deg, #06b6d4 0%, #6366f1 50%, #8b5cf6 100%)'
+          background: 'linear-gradient(180deg, #0284c7 0%, #6366f1 100%)'
         }} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {milestones.map((step: any, idx: number) => (
             <div
               key={step.course_id}
-              className="glass-panel"
+              className="saas-card"
               style={{
                 position: 'relative',
                 padding: 24,
-                borderLeft: '4px solid #06b6d4'
+                borderLeft: '4px solid #0284c7'
               }}
             >
               {/* Timeline marker node */}
@@ -155,9 +155,9 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
-                background: '#06b6d4',
-                boxShadow: '0 0 10px #06b6d4',
-                border: '3px solid #0a0d14'
+                background: '#0284c7',
+                border: '3px solid #ffffff',
+                boxShadow: '0 0 0 2px #0284c7'
               }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
@@ -166,7 +166,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
                     <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>Step {step.step_order}</span>
                     <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{step.provider}</span>
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', color: '#fff' }}>{step.title}</h3>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-main)' }}>{step.title}</h3>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -202,7 +202,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                     <span>Requires:</span>
                     {step.prerequisites.map((pre: string) => (
-                      <span key={pre} style={{ color: '#818cf8', fontWeight: 600 }}>{pre}</span>
+                      <span key={pre} style={{ color: '#4f46e5', fontWeight: 600 }}>{pre}</span>
                     ))}
                   </div>
                 )}
