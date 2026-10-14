@@ -18,6 +18,8 @@ data/raw/**
 !data/raw/**/SOURCE.md
 data/processed/*.db
 data/processed/*.sqlite
+data/uploads/*
+!data/uploads/.gitkeep
 backend/ml/models/*.joblib
 
 
