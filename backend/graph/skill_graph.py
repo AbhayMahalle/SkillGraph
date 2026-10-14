@@ -8,8 +8,9 @@ import os
 import json
 import networkx as nx
 from typing import Dict, Any, List, Optional
+from backend.database.db import REPO_ROOT
 
-PROCESSED_DIR = "data/processed"
+PROCESSED_DIR = os.getenv("PROCESSED_DIR", str(REPO_ROOT / "data" / "processed"))
 
 NODE_COLORS = {
     "employee": "#3b82f6",  # Blue

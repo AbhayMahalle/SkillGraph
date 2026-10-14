@@ -703,7 +703,7 @@ def build_seed_employees():
         },
         {
             "employee_id": "EMP-006",
-            "name": "Sarah Jenkins (HR Admin)",
+            "name": "Sarah Jenkins",
             "email": "sarah.jenkins@skillgraph.internal",
             "current_role": "HR Director",
             "department": "People & Culture",

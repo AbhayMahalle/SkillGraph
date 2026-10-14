@@ -8,8 +8,9 @@ import os
 import json
 import networkx as nx
 from typing import List, Dict, Any
+from backend.database.db import REPO_ROOT
 
-PROCESSED_DIR = "data/processed"
+PROCESSED_DIR = os.getenv("PROCESSED_DIR", str(REPO_ROOT / "data" / "processed"))
 
 class LearningPathGenerator:
     def __init__(self):

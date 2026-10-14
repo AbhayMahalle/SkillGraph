@@ -7,22 +7,27 @@ and Research Dataset Summaries.
 
 import os
 import json
+import uuid
+import re
+from datetime import datetime
 import pandas as pd
 from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from backend.database.db import get_db
+from backend.database.db import get_db, REPO_ROOT
 from backend.models.models import (
     User, Employee, Skill, EmployeeSkill, Role, RoleSkill,
     Course, CourseSkill, CoursePrerequisite, EmployeeCourse
 )
 from backend.api.auth import (
     hash_password, verify_password, create_access_token,
-    get_current_user, require_hr_user
+    get_current_user, revoke_token, security
 )
 from backend.ml.skill_extraction import skill_extractor, normalize_skill_name
+from backend.ml.resume_parser import validate_and_extract_text, save_uploaded_resume, ResumeParsingError
 from backend.ml.role_matching import calculate_role_match
 from backend.ml.readiness import readiness_predictor
 from backend.ml.learning_path import learning_path_generator
@@ -30,23 +35,69 @@ from backend.graph.skill_graph import skill_graph_manager
 
 api_router = APIRouter()
 
-PROCESSED_DIR = "data/processed"
-RAW_DIR = "data/raw"
+PROCESSED_DIR = os.getenv("PROCESSED_DIR", str(REPO_ROOT / "data" / "processed"))
+RAW_DIR = os.getenv("RAW_DIR", str(REPO_ROOT / "data" / "raw"))
+
+EMAIL_REGEX = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 # ---------------------------------------------------------
 # Pydantic Schemas
 # ---------------------------------------------------------
+class RegisterRequest(BaseModel):
+    full_name: str
+    email: str
+    password: str
+    department: Optional[str] = "Engineering"
+    current_role: Optional[str] = "Software Engineer"
+
 class LoginRequest(BaseModel):
     email: str
     password: str
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class UpdateUserMeRequest(BaseModel):
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    department: Optional[str] = None
+    target_role_id: Optional[str] = None
+    experience_years: Optional[int] = None
+    qualification: Optional[str] = None
+
 class DemoLoginRequest(BaseModel):
-    role: str  # "EMPLOYEE" or "HR"
     employee_id: Optional[str] = None
+
+VALID_PROFICIENCIES = {"Beginner", "Intermediate", "Advanced", "Expert"}
+VALID_SOURCES = {"self_reported", "resume_extracted", "project", "assessment"}
 
 class SkillAddRequest(BaseModel):
     skill_name: str
     proficiency: str = "Intermediate"  # Beginner, Intermediate, Advanced, Expert
+    source: Optional[str] = "self_reported"
+    evidence: Optional[str] = None
+
+class SkillUpdateRequest(BaseModel):
+    proficiency: str
+    evidence: Optional[str] = None
+    source: Optional[str] = None
+
+class SkillConfirmItem(BaseModel):
+    skill_name: str
+    proficiency: str = "Intermediate"
+    evidence: Optional[str] = None
+    accepted: bool = True
+
+class ConfirmSkillsRequest(BaseModel):
+    skills: List[SkillConfirmItem]
+
+# In-memory staging for extracted skills pending user review (keyed by user_id)
+STAGED_RESUME_EXTRACTIONS: Dict[int, Dict[str, Any]] = {}
+
+class TargetRoleRequest(BaseModel):
+    target_role_id: Optional[str] = None
+    role_id: Optional[str] = None
 
 class ProfileUpdateRequest(BaseModel):
     target_role_id: Optional[str] = None
@@ -62,16 +113,112 @@ class WhatIfRequest(BaseModel):
     completed_course_ids: List[str] = []
 
 # ---------------------------------------------------------
-# Auth Endpoints
+# Auth & User Endpoints
 # ---------------------------------------------------------
+@api_router.post("/auth/register")
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
+    """Registers a new personal account with an isolated profile and PBKDF2-hashed credentials."""
+    # 1. Normalize and validate email
+    email = req.email.strip().lower()
+    if not email or not EMAIL_REGEX.match(email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A valid email address is required"
+        )
+
+    # 2. Validate full_name
+    full_name = req.full_name.strip()
+    if not full_name or len(full_name) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Full name must be at least 2 characters long"
+        )
+
+    # 3. Validate password
+    if not req.password or len(req.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+
+    # 4. Check uniqueness in users and employees
+    existing_user = db.query(User).filter(User.email == email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered"
+        )
+
+    existing_emp = db.query(Employee).filter(Employee.email == email).first()
+    if existing_emp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An employee account with this email already exists"
+        )
+
+    # 5. Generate unique employee_id
+    new_emp_id = f"EMP-{uuid.uuid4().hex[:8].upper()}"
+    while db.query(Employee).filter(Employee.employee_id == new_emp_id).first():
+        new_emp_id = f"EMP-{uuid.uuid4().hex[:8].upper()}"
+
+    # 6. Create Employee profile
+    new_emp = Employee(
+        employee_id=new_emp_id,
+        name=full_name,
+        email=email,
+        current_role=req.current_role.strip() if req.current_role else "Software Engineer",
+        department=req.department.strip() if req.department else "Engineering",
+        experience_years=1,
+        qualification="Bachelor's Degree",
+        target_role_id="ROL-001",
+        bio="",
+        resume_text=""
+    )
+    db.add(new_emp)
+    db.flush()
+
+    # 7. Create User
+    new_user = User(
+        email=email,
+        hashed_password=hash_password(req.password),
+        full_name=full_name,
+        role="EMPLOYEE",
+        employee_id=new_emp_id
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    # 8. Issue token
+    token = create_access_token({"sub": new_user.email, "role": new_user.role})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "full_name": new_user.full_name,
+            "role": new_user.role,
+            "employee_id": new_user.employee_id
+        }
+    }
+
 @api_router.post("/auth/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email).first()
+    """Verifies credentials, upgrades legacy hashes, and returns HS256 JWT access token."""
+    email = req.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(req.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
+
+    # Seamlessly upgrade legacy Phase 1 SHA-256 hash to PBKDF2
+    if not user.hashed_password.startswith("pbkdf2_sha256$"):
+        user.hashed_password = hash_password(req.password)
+        db.commit()
+
     token = create_access_token({"sub": user.email, "role": user.role})
     return {
         "access_token": token,
@@ -86,16 +233,144 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         }
     }
 
+@api_router.post("/auth/logout")
+def logout(
+    current_user: User = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Terminates active session by revoking the JWT token on the server."""
+    revoke_token(credentials.credentials)
+    return {"status": "success", "message": "Successfully logged out"}
+
+@api_router.post("/auth/change-password")
+def change_password(
+    req: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Securely updates password after verifying existing credentials."""
+    if not verify_password(req.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    if len(req.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters long"
+        )
+    if req.current_password == req.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password cannot be the same as current password"
+        )
+
+    current_user.hashed_password = hash_password(req.new_password)
+    db.commit()
+    return {"status": "success", "message": "Password changed successfully"}
+
+@api_router.get("/users/me")
+def get_user_me(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Retrieves authenticated user details and strictly linked private employee profile."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "role": current_user.role,
+        "employee_id": current_user.employee_id,
+        "profile": {
+            "employee_id": emp.employee_id,
+            "name": emp.name,
+            "email": emp.email,
+            "current_role": emp.current_role,
+            "department": emp.department,
+            "experience_years": emp.experience_years,
+            "qualification": emp.qualification,
+            "target_role_id": emp.target_role_id,
+            "bio": emp.bio
+        } if emp else None
+    }
+
+@api_router.patch("/users/me")
+def update_user_me(
+    req: UpdateUserMeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Safely updates personal profile while prohibiting tampering with protected fields."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+
+    if req.full_name is not None:
+        name_val = req.full_name.strip()
+        if not name_val:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Full name cannot be empty")
+        current_user.full_name = name_val
+        if emp:
+            emp.name = name_val
+
+    if emp:
+        if req.target_role_id is not None:
+            role_obj = db.query(Role).filter(Role.role_id == req.target_role_id).first()
+            if not role_obj:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Target role '{req.target_role_id}' not found")
+            emp.target_role_id = req.target_role_id
+
+        if req.bio is not None:
+            emp.bio = req.bio
+
+        if req.department is not None:
+            emp.department = req.department.strip()
+
+        if req.experience_years is not None:
+            if req.experience_years < 0 or req.experience_years > 60:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Experience years must be between 0 and 60")
+            emp.experience_years = req.experience_years
+
+        if req.qualification is not None:
+            emp.qualification = req.qualification.strip()
+
+    db.commit()
+    db.refresh(current_user)
+    if emp:
+        db.refresh(emp)
+
+    return {
+        "status": "success",
+        "message": "Profile updated successfully",
+        "user": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "full_name": current_user.full_name,
+            "role": current_user.role,
+            "employee_id": current_user.employee_id,
+            "profile": {
+                "employee_id": emp.employee_id,
+                "name": emp.name,
+                "email": emp.email,
+                "current_role": emp.current_role,
+                "department": emp.department,
+                "experience_years": emp.experience_years,
+                "qualification": emp.qualification,
+                "target_role_id": emp.target_role_id,
+                "bio": emp.bio
+            } if emp else None
+        }
+    }
+
 @api_router.post("/auth/demo-login")
-def demo_login(req: DemoLoginRequest, db: Session = Depends(get_db)):
-    """1-Click instant login for demonstration and grading."""
-    if req.role.upper() == "HR":
-        user = db.query(User).filter(User.role == "HR").first()
+def demo_login(req: DemoLoginRequest = DemoLoginRequest(), db: Session = Depends(get_db)):
+    """Preserved demo login for compatibility testing."""
+    if req.employee_id:
+        user = db.query(User).filter(User.employee_id == req.employee_id).first()
     else:
-        if req.employee_id:
-            user = db.query(User).filter(User.employee_id == req.employee_id).first()
-        else:
-            user = db.query(User).filter(User.role == "EMPLOYEE").first()
+        user = db.query(User).filter(User.role == "EMPLOYEE").first()
+
+    if not user:
+        user = db.query(User).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="Demo account not found")
@@ -116,6 +391,7 @@ def demo_login(req: DemoLoginRequest, db: Session = Depends(get_db)):
 
 @api_router.get("/auth/me")
 def get_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Legacy endpoint adapter mapping to current authenticated user."""
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     return {
         "id": current_user.id,
@@ -141,18 +417,22 @@ def get_employee_profile(
 ):
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        # If user is HR or has no direct employee linked, return first employee as fallback
-        emp = db.query(Employee).first()
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
     # Load skills
     skills_data = []
     for es in emp.skills:
         skills_data.append({
+            "id": es.id,
             "skill_id": es.skill_id,
             "skill_name": es.skill.name if es.skill else es.skill_id,
             "category": es.skill.category if es.skill else "General",
             "proficiency": es.proficiency,
-            "verified": es.verified
+            "verified": es.verified,
+            "source": es.source or "self_reported",
+            "evidence": es.evidence,
+            "created_at": es.created_at,
+            "updated_at": es.updated_at
         })
 
     # Completed courses
@@ -196,20 +476,79 @@ def update_employee_profile(
     db.refresh(emp)
     return {"status": "success", "message": "Profile updated successfully"}
 
+# ---------------------------------------------------------
+# Phase 3: Personal Skill Profiling & Resume Intelligence Endpoints
+# ---------------------------------------------------------
+@api_router.get("/skills/catalog")
+def get_skills_catalog(
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Retrieves canonical 119 skills with category and alias information for selection."""
+    query = db.query(Skill)
+    if category:
+        query = query.filter(Skill.category.ilike(f"%{category}%"))
+    if q:
+        query = query.filter(Skill.name.ilike(f"%{q}%"))
+    skills = query.order_by(Skill.name).all()
+    return [
+        {
+            "skill_id": s.skill_id,
+            "name": s.name,
+            "category": s.category,
+            "importance_weight": s.importance_weight,
+            "aliases": json.loads(s.aliases) if s.aliases else []
+        }
+        for s in skills
+    ]
+
+@api_router.get("/employees/skills")
+def get_user_skills(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Lists current authenticated user's skills with validated proficiency, source, and evidence."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    skills_data = []
+    for es in emp.skills:
+        skills_data.append({
+            "id": es.id,
+            "skill_id": es.skill_id,
+            "skill_name": es.skill.name if es.skill else es.skill_id,
+            "category": es.skill.category if es.skill else "General",
+            "proficiency": es.proficiency,
+            "verified": es.verified,
+            "source": es.source or "self_reported",
+            "evidence": es.evidence,
+            "created_at": es.created_at,
+            "updated_at": es.updated_at
+        })
+    return skills_data
+
 @api_router.post("/employees/skills")
 def add_employee_skill(
     req: SkillAddRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """Adds or updates a personal skill with proficiency validation and provenance tracking."""
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    if req.proficiency not in VALID_PROFICIENCIES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid proficiency '{req.proficiency}'. Allowed levels: {', '.join(sorted(VALID_PROFICIENCIES))}"
+        )
 
     norm_name = normalize_skill_name(req.skill_name)
     skill = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
     if not skill:
-        # Create on the fly
         skill = Skill(
             skill_id=f"SKL-{db.query(Skill).count()+1:03d}",
             name=norm_name,
@@ -221,7 +560,10 @@ def add_employee_skill(
         db.commit()
         db.refresh(skill)
 
-    # Check if exists
+    now_iso = datetime.utcnow().isoformat()
+    source_val = req.source if req.source in VALID_SOURCES else "self_reported"
+    verified_val = True if source_val != "resume_extracted" else False
+
     existing = db.query(EmployeeSkill).filter(
         EmployeeSkill.employee_id == emp.employee_id,
         EmployeeSkill.skill_id == skill.skill_id
@@ -229,17 +571,81 @@ def add_employee_skill(
 
     if existing:
         existing.proficiency = req.proficiency
+        existing.updated_at = now_iso
+        if req.evidence:
+            existing.evidence = req.evidence
+        if req.source:
+            existing.source = source_val
     else:
         new_es = EmployeeSkill(
             employee_id=emp.employee_id,
             skill_id=skill.skill_id,
             proficiency=req.proficiency,
-            verified=True
+            verified=verified_val,
+            source=source_val,
+            evidence=req.evidence,
+            created_at=now_iso,
+            updated_at=now_iso
         )
         db.add(new_es)
 
     db.commit()
-    return {"status": "success", "skill_name": norm_name, "proficiency": req.proficiency}
+    return {
+        "status": "success",
+        "skill_name": skill.name,
+        "skill_id": skill.skill_id,
+        "proficiency": req.proficiency,
+        "source": source_val,
+        "verified": verified_val
+    }
+
+@api_router.put("/employees/skills/{skill_name}")
+def update_employee_skill(
+    skill_name: str,
+    req: SkillUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Updates proficiency and evidence for an existing skill in the user's profile."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    if req.proficiency not in VALID_PROFICIENCIES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid proficiency '{req.proficiency}'. Allowed levels: {', '.join(sorted(VALID_PROFICIENCIES))}"
+        )
+
+    norm_name = normalize_skill_name(skill_name)
+    skill = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
+    if not skill:
+        skill = db.query(Skill).filter(Skill.name.ilike(skill_name)).first()
+    if not skill:
+        raise HTTPException(status_code=404, detail=f"Skill '{skill_name}' not found")
+
+    existing = db.query(EmployeeSkill).filter(
+        EmployeeSkill.employee_id == emp.employee_id,
+        EmployeeSkill.skill_id == skill.skill_id
+    ).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"Skill '{skill_name}' not found in profile")
+
+    existing.proficiency = req.proficiency
+    existing.updated_at = datetime.utcnow().isoformat()
+    if req.evidence is not None:
+        existing.evidence = req.evidence
+    if req.source and req.source in VALID_SOURCES:
+        existing.source = req.source
+
+    db.commit()
+    return {
+        "status": "success",
+        "skill_name": skill.name,
+        "proficiency": existing.proficiency,
+        "source": existing.source,
+        "evidence": existing.evidence
+    }
 
 @api_router.delete("/employees/skills/{skill_name}")
 def delete_employee_skill(
@@ -247,83 +653,229 @@ def delete_employee_skill(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """Removes a skill from the authenticated user's personal profile."""
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
-    skill = db.query(Skill).filter(Skill.name.ilike(skill_name)).first()
+    norm_name = normalize_skill_name(skill_name)
+    skill = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
     if not skill:
-        raise HTTPException(status_code=404, detail="Skill not found")
+        skill = db.query(Skill).filter(Skill.name.ilike(skill_name)).first()
+    if not skill:
+        raise HTTPException(status_code=404, detail=f"Skill '{skill_name}' not found")
 
-    db.query(EmployeeSkill).filter(
+    deleted = db.query(EmployeeSkill).filter(
         EmployeeSkill.employee_id == emp.employee_id,
         EmployeeSkill.skill_id == skill.skill_id
     ).delete()
+
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail=f"Skill '{skill_name}' not found in user profile")
+
     db.commit()
     return {"status": "success", "message": f"Skill {skill_name} removed"}
 
 @api_router.post("/employees/resume-upload")
-def upload_resume_text(
-    req: ResumeTextRequest,
+async def upload_resume(
+    request: Request,
+    file: Optional[UploadFile] = File(None),
+    text: Optional[str] = Form(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Uploads and processes a resume file (PDF, DOCX, TXT) or raw text.
+    Extracts candidate skills with evidence and confidence.
+    Candidate skills are staged for user review and NOT automatically saved as verified expertise.
+    """
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
-    extracted = skill_extractor.extract_skills_from_text(req.text)
-    emp.resume_text = req.text
+    extracted_text = ""
+    file_info = {"file_type": "TEXT", "filename": "pasted_text.txt"}
+    content_type = request.headers.get("content-type", "")
 
-    # Auto-add newly discovered skills with estimated proficiencies
-    added_count = 0
-    for item in extracted:
-        sk_name = item["skill_name"]
-        skill = db.query(Skill).filter(Skill.name.ilike(sk_name)).first()
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict) and "text" in body and body["text"].strip():
+                extracted_text = body["text"].strip()
+        except Exception:
+            pass
+    elif file and file.filename:
+        try:
+            content = await file.read()
+            extracted_text, detected_type = validate_and_extract_text(file.filename, content)
+            stored_rel_path = save_uploaded_resume(current_user.id, file.filename, content)
+            file_info["file_type"] = detected_type
+            file_info["filename"] = file.filename
+            file_info["stored_path"] = stored_rel_path
+        except ResumeParsingError as rpe:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(rpe))
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed to process file: {str(e)}")
+    elif text and text.strip():
+        extracted_text = text.strip()
+
+    if not extracted_text:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either a valid resume file (.pdf, .docx, .txt) or non-empty resume text must be provided."
+        )
+
+
+
+    emp.resume_text = extracted_text
+    db.commit()
+
+    # Extract candidate skills with supporting text evidence and confidence
+    extracted_skills = skill_extractor.extract_skills_from_text(extracted_text)
+
+    # Store in staging cache for user review (keyed by current_user.id)
+    STAGED_RESUME_EXTRACTIONS[current_user.id] = {
+        "filename": file_info["filename"],
+        "file_type": file_info["file_type"],
+        "extracted_skills": extracted_skills,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+    return {
+        "status": "success",
+        "filename": file_info["filename"],
+        "file_type": file_info["file_type"],
+        "text_length": len(extracted_text),
+        "extracted_skills": extracted_skills,
+        "total_extracted": len(extracted_skills),
+        "message": "Resume analyzed successfully. Please review and confirm detected skills."
+    }
+
+@api_router.get("/employees/resume/extracted")
+def get_extracted_skills(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Retrieves staged resume extraction results awaiting user review."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    staged = STAGED_RESUME_EXTRACTIONS.get(current_user.id)
+    if staged:
+        return staged
+
+    # If staging is empty but user previously uploaded resume text, re-extract on demand
+    if emp.resume_text:
+        skills = skill_extractor.extract_skills_from_text(emp.resume_text)
+        return {
+            "filename": "saved_resume.txt",
+            "file_type": "TEXT",
+            "extracted_skills": skills,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    return {
+        "filename": None,
+        "file_type": None,
+        "extracted_skills": [],
+        "timestamp": None
+    }
+
+@api_router.post("/employees/resume/confirm-skills")
+def confirm_extracted_skills(
+    req: ConfirmSkillsRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Saves user-reviewed and approved candidate skills to their personal profile.
+    Saves with source 'resume_extracted' and verified=False (unverified candidate skill).
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    confirmed_count = 0
+    now_iso = datetime.utcnow().isoformat()
+
+    for item in req.skills:
+        if not item.accepted:
+            continue
+
+        prof = item.proficiency if item.proficiency in VALID_PROFICIENCIES else "Intermediate"
+        norm_name = normalize_skill_name(item.skill_name)
+
+        skill = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
         if not skill:
             skill = Skill(
                 skill_id=f"SKL-{db.query(Skill).count()+1:03d}",
-                name=sk_name,
+                name=norm_name,
                 category="General",
                 importance_weight=1.0,
                 aliases="[]"
             )
             db.add(skill)
-            db.commit()
-            db.refresh(skill)
+            db.flush()
 
         existing = db.query(EmployeeSkill).filter(
             EmployeeSkill.employee_id == emp.employee_id,
             EmployeeSkill.skill_id == skill.skill_id
         ).first()
 
-        if not existing:
+        if existing:
+            existing.proficiency = prof
+            existing.evidence = item.evidence or existing.evidence
+            existing.source = "resume_extracted"
+            existing.verified = False
+            existing.updated_at = now_iso
+        else:
             new_es = EmployeeSkill(
                 employee_id=emp.employee_id,
                 skill_id=skill.skill_id,
-                proficiency=item["estimated_proficiency"],
-                verified=False  # Extracted from resume, unverified
+                proficiency=prof,
+                verified=False,
+                source="resume_extracted",
+                evidence=item.evidence,
+                created_at=now_iso,
+                updated_at=now_iso
             )
             db.add(new_es)
-            added_count += 1
+        confirmed_count += 1
 
     db.commit()
+    # Clear staging for user
+    STAGED_RESUME_EXTRACTIONS.pop(current_user.id, None)
+
     return {
         "status": "success",
-        "extracted_skills": extracted,
-        "newly_added_skills_count": added_count,
-        "total_extracted": len(extracted)
+        "confirmed_count": confirmed_count,
+        "message": f"Successfully saved {confirmed_count} confirmed skills to your personal profile."
     }
 
 # ---------------------------------------------------------
 # Roles & Recommendations Endpoints
 # ---------------------------------------------------------
+# ---------------------------------------------------------
+# Roles & Recommendations Endpoints
+# ---------------------------------------------------------
 @api_router.get("/roles")
-def get_all_roles(category: Optional[str] = None, db: Session = Depends(get_db)):
+def get_all_roles(
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Lists canonical roles with optional query search and category filtering."""
     query = db.query(Role)
-    if category:
-        query = query.filter(Role.category.ilike(category))
-    roles = query.all()
+    if category and category.lower() != "all":
+        query = query.filter(Role.category.ilike(f"%{category}%") | Role.department.ilike(f"%{category}%"))
+    if q:
+        query = query.filter(
+            Role.title.ilike(f"%{q}%") |
+            Role.department.ilike(f"%{q}%") |
+            Role.description.ilike(f"%{q}%")
+        )
+    roles = query.order_by(Role.title).all()
 
     result = []
     for r in roles:
@@ -343,31 +895,121 @@ def get_all_roles(category: Optional[str] = None, db: Session = Depends(get_db))
         })
     return result
 
-@api_router.get("/roles/{role_id}")
-def get_role_detail(role_id: str, db: Session = Depends(get_db)):
-    r = db.query(Role).filter(Role.role_id == role_id).first()
-    if not r:
-        raise HTTPException(status_code=404, detail="Role not found")
+@api_router.put("/employees/target-role")
+@api_router.post("/employees/target-role")
+def set_employee_target_role(
+    req: TargetRoleRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Sets and persists the authenticated user's designated target career role."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
-    req_skills = [
-        {
-            "skill_name": rs.skill.name,
-            "category": rs.skill.category,
-            "weight": rs.importance_weight
-        }
-        for rs in r.required_skills if rs.skill
-    ]
+    target_id = (req.target_role_id or req.role_id or "").strip()
+    if not target_id:
+        raise HTTPException(status_code=400, detail="Missing required 'target_role_id' or 'role_id'")
+
+    role = db.query(Role).filter(Role.role_id == target_id).first()
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Target role '{target_id}' not found in canonical catalog"
+        )
+
+    emp.target_role_id = role.role_id
+    db.commit()
+    db.refresh(emp)
     return {
-        "role_id": r.role_id,
-        "title": r.title,
-        "category": r.category,
-        "department": r.department,
-        "experience_years": r.experience_years,
-        "education": r.education,
-        "salary_range": r.salary_range,
-        "description": r.description,
-        "openings": r.openings,
-        "required_skills": req_skills
+        "status": "success",
+        "target_role_id": role.role_id,
+        "target_role_title": role.title,
+        "department": role.department,
+        "message": f"Target role successfully set to '{role.title}'."
+    }
+
+@api_router.get("/roles/compare")
+def compare_roles(
+    role_ids: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Compares multiple canonical roles side-by-side against the authenticated user's verified profile."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    ids = [rid.strip() for rid in role_ids.split(",") if rid.strip()]
+    if len(ids) < 2:
+        raise HTTPException(status_code=400, detail="Provide at least 2 role IDs to compare (e.g. ?role_ids=ROL-001,ROL-002)")
+    if len(ids) > 4:
+        raise HTTPException(status_code=400, detail="A maximum of 4 roles can be compared simultaneously")
+
+    emp_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
+
+    compared = []
+    all_req_sets = []
+    all_missing_sets = []
+
+    for rid in ids:
+        r = db.query(Role).filter(Role.role_id == rid).first()
+        if not r:
+            raise HTTPException(status_code=404, detail=f"Role '{rid}' not found in canonical catalog")
+
+        req_skills = [rs.skill.name for rs in r.required_skills if rs.skill]
+        weights = {rs.skill.name: rs.importance_weight for rs in r.required_skills if rs.skill}
+
+        match = calculate_role_match(
+            employee_skills=emp_skills,
+            employee_exp_years=emp.experience_years,
+            role_required_skills=req_skills,
+            role_exp_years=r.experience_years,
+            role_skill_weights=weights
+        )
+
+        all_req_sets.append(set(req_skills))
+        missing_names = {m["skill_name"] for m in match["missing_skills"]}
+        all_missing_sets.append(missing_names)
+
+        compared.append({
+            "role_id": r.role_id,
+            "title": r.title,
+            "department": r.department,
+            "category": r.category,
+            "salary_range": r.salary_range,
+            "openings": r.openings,
+            "experience_years": r.experience_years,
+            "match_score": match["match_score"],
+            "coverage_percentage": match["coverage_percentage"],
+            "mobility_status": match["mobility_status"],
+            "met_count": match.get("met_count", 0),
+            "partially_met_count": match.get("partially_met_count", 0),
+            "missing_count": match.get("missing_count", 0),
+            "met_skills": [m["skill_name"] for m in match.get("met_skills", [])],
+            "partially_met_skills": [m["skill_name"] for m in match.get("partially_met_skills", [])],
+            "missing_skills": [m["skill_name"] for m in match["missing_skills"]],
+            "gaps": match.get("gaps", []),
+            "explanation": match.get("explanation")
+        })
+
+    common_req = list(set.intersection(*all_req_sets)) if all_req_sets else []
+    common_miss = list(set.intersection(*all_missing_sets)) if all_missing_sets else []
+
+    return {
+        "compared_roles": compared,
+        "common_required_skills": sorted(common_req),
+        "common_missing_skills": sorted(common_miss),
+        "total_compared": len(compared)
     }
 
 @api_router.get("/roles/recommendations")
@@ -375,11 +1017,21 @@ def get_role_recommendations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """Computes personalized multi-factor match scores across all roles with provenance awareness."""
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        emp = db.query(Employee).first()
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
-    emp_skills = [{"name": es.skill.name, "proficiency": es.proficiency} for es in emp.skills if es.skill]
+    emp_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
     all_roles = db.query(Role).all()
 
     recommendations = []
@@ -406,21 +1058,125 @@ def get_role_recommendations(
             "role_id": r.role_id,
             "title": r.title,
             "department": r.department,
+            "category": r.category,
             "match_score": match["match_score"],
             "coverage_percentage": match["coverage_percentage"],
             "mobility_status": match["mobility_status"],
             "projected_readiness_pct": readiness["projected_readiness_pct"],
             "matched_count": match["matched_count"],
             "missing_count": match["missing_count"],
+            "met_count": match.get("met_count", 0),
+            "partially_met_count": match.get("partially_met_count", 0),
             "matched_skills": [m["skill_name"] for m in match["matched_skills"]],
             "missing_skills": [m["skill_name"] for m in match["missing_skills"]],
+            "met_skills": [m["skill_name"] for m in match.get("met_skills", [])],
+            "partially_met_skills": [m["skill_name"] for m in match.get("partially_met_skills", [])],
             "openings": r.openings,
-            "salary_range": r.salary_range
+            "salary_range": r.salary_range,
+            "explanation": match.get("explanation")
         })
 
     # Sort descending by match score
     recommendations.sort(key=lambda x: x["match_score"], reverse=True)
     return recommendations
+
+@api_router.get("/roles/match/{role_id}")
+def get_single_role_match(
+    role_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Returns detailed personalized match calculation and explainable breakdown for a specific role."""
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    r = db.query(Role).filter(Role.role_id == role_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail=f"Role '{role_id}' not found in canonical catalog")
+
+    emp_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
+
+    req_skills = [rs.skill.name for rs in r.required_skills if rs.skill]
+    weights = {rs.skill.name: rs.importance_weight for rs in r.required_skills if rs.skill}
+
+    match = calculate_role_match(
+        employee_skills=emp_skills,
+        employee_exp_years=emp.experience_years,
+        role_required_skills=req_skills,
+        role_exp_years=r.experience_years,
+        role_skill_weights=weights
+    )
+
+    readiness = readiness_predictor.evaluate_transition(
+        current_match_score=match["match_score"],
+        missing_skills_count=match["missing_count"],
+        total_skills_count=match["total_required"],
+        exp_delta=match["experience_delta"]
+    )
+
+    return {
+        "role_id": r.role_id,
+        "title": r.title,
+        "department": r.department,
+        "category": r.category,
+        "salary_range": r.salary_range,
+        "openings": r.openings,
+        "experience_years": r.experience_years,
+        "match_score": match["match_score"],
+        "coverage_percentage": match["coverage_percentage"],
+        "mobility_status": match["mobility_status"],
+        "met_skills": match.get("met_skills", []),
+        "partially_met_skills": match.get("partially_met_skills", []),
+        "missing_skills": match["missing_skills"],
+        "all_gaps": match.get("gaps", []),
+        "matched_count": match["matched_count"],
+        "missing_count": match["missing_count"],
+        "met_count": match.get("met_count", 0),
+        "partially_met_count": match.get("partially_met_count", 0),
+        "total_required": match["total_required"],
+        "experience_delta": match["experience_delta"],
+        "projected_readiness_pct": readiness["projected_readiness_pct"],
+        "readiness_verdict": readiness["transition_verdict"],
+        "explanation": match.get("explanation")
+    }
+
+@api_router.get("/roles/{role_id}")
+def get_role_detail(role_id: str, db: Session = Depends(get_db)):
+    """Retrieves full canonical details, requirements, and weights for a designated role."""
+    r = db.query(Role).filter(Role.role_id == role_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Role not found")
+
+    req_skills = [
+        {
+            "skill_name": rs.skill.name,
+            "category": rs.skill.category,
+            "weight": rs.importance_weight
+        }
+        for rs in r.required_skills if rs.skill
+    ]
+    return {
+        "role_id": r.role_id,
+        "title": r.title,
+        "category": r.category,
+        "department": r.department,
+        "experience_years": r.experience_years,
+        "education": r.education,
+        "salary_range": r.salary_range,
+        "description": r.description,
+        "openings": r.openings,
+        "required_skills": req_skills
+    }
 
 # ---------------------------------------------------------
 # Skill Gap Analysis & Learning Path Endpoints
@@ -431,15 +1187,25 @@ def get_skill_gap_analysis(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """Performs rigorous skill gap analysis classifying requirements into Met, Partially Met, and Missing."""
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        emp = db.query(Employee).first()
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
     role = db.query(Role).filter(Role.role_id == role_id).first()
     if not role:
-        raise HTTPException(status_code=404, detail="Target role not found")
+        raise HTTPException(status_code=404, detail=f"Target role '{role_id}' not found in canonical catalog")
 
-    emp_skills = [{"name": es.skill.name, "proficiency": es.proficiency} for es in emp.skills if es.skill]
+    emp_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
     req_skills = [rs.skill.name for rs in role.required_skills if rs.skill]
     weights = {rs.skill.name: rs.importance_weight for rs in role.required_skills if rs.skill}
 
@@ -462,19 +1228,27 @@ def get_skill_gap_analysis(
     radar_data = []
     emp_skill_dict = {s["name"].lower(): s["proficiency"] for s in emp_skills}
     proficiency_numeric = {"Expert": 100, "Advanced": 80, "Intermediate": 55, "Beginner": 30}
+    benchmark_num = 80 if role.experience_years >= 5 else 60 if role.experience_years >= 2 else 40
 
     for rs in req_skills:
         rs_lower = rs.lower()
         curr_val = proficiency_numeric.get(emp_skill_dict.get(rs_lower, ""), 0)
         radar_data.append({
             "skill": rs,
-            "required_level": 85,
+            "required_level": benchmark_num,
             "current_level": curr_val
         })
 
     return {
         "role_id": role.role_id,
         "role_title": role.title,
+        "department": role.department,
+        "category": role.category,
+        "experience_years": role.experience_years,
+        "education": role.education,
+        "salary_range": role.salary_range,
+        "description": role.description,
+        "openings": role.openings,
         "employee_name": emp.name,
         "current_role": emp.current_role,
         "match_score": match_result["match_score"],
@@ -482,6 +1256,16 @@ def get_skill_gap_analysis(
         "mobility_status": match_result["mobility_status"],
         "matched_skills": match_result["matched_skills"],
         "missing_skills": match_result["missing_skills"],
+        "met_skills": match_result.get("met_skills", []),
+        "partially_met_skills": match_result.get("partially_met_skills", []),
+        "all_gaps": match_result.get("gaps", []),
+        "summary": {
+            "met_count": match_result.get("met_count", 0),
+            "partially_met_count": match_result.get("partially_met_count", 0),
+            "missing_count": match_result.get("missing_count", 0),
+            "total_required": match_result["total_required"]
+        },
+        "explanation": match_result.get("explanation"),
         "radar_data": radar_data,
         "readiness_prediction": readiness
     }
@@ -494,7 +1278,7 @@ def get_learning_path(
 ):
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        emp = db.query(Employee).first()
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
     role = db.query(Role).filter(Role.role_id == role_id).first()
     if not role:
@@ -528,7 +1312,7 @@ def simulate_what_if(
     """
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
-        emp = db.query(Employee).first()
+        raise HTTPException(status_code=404, detail="Employee profile not found")
 
     role = db.query(Role).filter(Role.role_id == req.target_role_id).first()
     if not role:
@@ -624,115 +1408,6 @@ def get_graph_data(
         focus_id=focus_id,
         max_nodes=max_nodes
     )
-
-# ---------------------------------------------------------
-# HR & Workforce Planning Endpoints
-# ---------------------------------------------------------
-@api_router.get("/hr/analytics")
-def get_hr_analytics(current_user: User = Depends(require_hr_user), db: Session = Depends(get_db)):
-    demand_file = os.path.join(PROCESSED_DIR, "workforce_demand.json")
-    if os.path.exists(demand_file):
-        with open(demand_file, "r") as f:
-            demand = json.load(f)
-    else:
-        demand = {}
-
-    total_employees = db.query(Employee).count()
-    total_roles = db.query(Role).count()
-    total_skills = db.query(Skill).count()
-
-    # Department breakdown
-    dept_counts = {}
-    for emp in db.query(Employee).all():
-        dept_counts[emp.department] = dept_counts.get(emp.department, 0) + 1
-
-    return {
-        "workforce_summary": demand.get("summary", {
-            "total_headcount": total_employees,
-            "open_positions": 28,
-            "projected_q4_hires": 35,
-            "internal_mobility_target_pct": 65,
-            "upskilling_active_employees": 46
-        }),
-        "departments": dept_counts,
-        "total_canonical_roles": total_roles,
-        "total_canonical_skills": total_skills,
-        "role_demands": demand.get("role_demands", []),
-        "top_skill_shortages": demand.get("top_skill_shortages", [])
-    }
-
-@api_router.get("/hr/talent-pool")
-def get_internal_talent_pool(current_user: User = Depends(require_hr_user), db: Session = Depends(get_db)):
-    employees = db.query(Employee).all()
-    results = []
-    for emp in employees:
-        skills = [es.skill.name for es in emp.skills if es.skill]
-        target_role = db.query(Role).filter(Role.role_id == emp.target_role_id).first()
-        results.append({
-            "employee_id": emp.employee_id,
-            "name": emp.name,
-            "email": emp.email,
-            "current_role": emp.current_role,
-            "department": emp.department,
-            "experience_years": emp.experience_years,
-            "qualification": emp.qualification,
-            "skills": skills,
-            "target_role": target_role.title if target_role else None
-        })
-    return results
-
-@api_router.get("/hr/candidates-for-role/{role_id}")
-def get_internal_candidates_for_role(
-    role_id: str,
-    current_user: User = Depends(require_hr_user),
-    db: Session = Depends(get_db)
-):
-    role = db.query(Role).filter(Role.role_id == role_id).first()
-    if not role:
-        raise HTTPException(status_code=404, detail="Role not found")
-
-    req_skills = [rs.skill.name for rs in role.required_skills if rs.skill]
-    weights = {rs.skill.name: rs.importance_weight for rs in role.required_skills if rs.skill}
-
-    candidates = []
-    for emp in db.query(Employee).all():
-        emp_skills = [{"name": es.skill.name, "proficiency": es.proficiency} for es in emp.skills if es.skill]
-        match = calculate_role_match(
-            employee_skills=emp_skills,
-            employee_exp_years=emp.experience_years,
-            role_required_skills=req_skills,
-            role_exp_years=role.experience_years,
-            role_skill_weights=weights
-        )
-        readiness = readiness_predictor.evaluate_transition(
-            current_match_score=match["match_score"],
-            missing_skills_count=match["missing_count"],
-            total_skills_count=match["total_required"],
-            exp_delta=match["experience_delta"]
-        )
-
-        candidates.append({
-            "employee_id": emp.employee_id,
-            "name": emp.name,
-            "current_role": emp.current_role,
-            "department": emp.department,
-            "match_score": match["match_score"],
-            "coverage_percentage": match["coverage_percentage"],
-            "mobility_status": match["mobility_status"],
-            "projected_readiness": readiness["projected_readiness_pct"],
-            "matched_skills": [m["skill_name"] for m in match["matched_skills"]],
-            "missing_skills": [m["skill_name"] for m in match["missing_skills"]]
-        })
-
-    candidates.sort(key=lambda x: x["match_score"], reverse=True)
-    return {
-        "role_id": role.role_id,
-        "role_title": role.title,
-        "department": role.department,
-        "openings": role.openings,
-        "required_skills": req_skills,
-        "ranked_candidates": candidates
-    }
 
 # ---------------------------------------------------------
 # Research & Raw Datasets Summary (Viva / Presentation Explorer)

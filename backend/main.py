@@ -9,17 +9,26 @@ import sys
 # Ensure repository root is in sys.path
 sys.path.insert(0, os.path.abspath("."))
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database.db import engine, Base
 from backend.database.init_db import seed_database
 from backend.api.routes import api_router
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Verify database tables and seed if necessary on startup."""
+    print("[SERVER] Initializing database and ensuring seed data...")
+    seed_database()
+    print("[SERVER] SkillGraph backend ready.")
+    yield
+
 app = FastAPI(
     title="SkillGraph API",
-    description="AI-Powered Workforce Skill Gap Analysis & Internal Talent Mobility Platform",
-    version="1.0.0"
+    description="AI-Powered Workforce Skill Gap Analysis & Self-Service Career Mobility Platform",
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Enable CORS for local Vite dev server and production clients
@@ -33,13 +42,6 @@ app.add_middleware(
 
 # Register API Router
 app.include_router(api_router, prefix="/api")
-
-@app.on_event("startup")
-def on_startup():
-    """Verify database tables and seed if necessary on startup."""
-    print("[SERVER] Initializing database and ensuring seed data...")
-    seed_database()
-    print("[SERVER] SkillGraph backend ready.")
 
 @app.get("/api/health")
 def health_check():

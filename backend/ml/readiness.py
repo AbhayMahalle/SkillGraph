@@ -7,20 +7,23 @@ for internal talent mobility transitions.
 import os
 import joblib
 import numpy as np
-from typing import Dict, Any, List
+from pathlib import Path
+from typing import Dict, Any, List, Optional
+from backend.database.db import REPO_ROOT
 
-MODEL_PATH = "backend/ml/models/readiness_model.joblib"
+MODEL_PATH = os.getenv("READINESS_MODEL_PATH", str(REPO_ROOT / "backend" / "ml" / "models" / "readiness_model.joblib"))
 
 class ReadinessPredictor:
-    def __init__(self):
+    def __init__(self, model_path: Optional[str] = None):
         self.model = None
         self.scaler = None
+        self.model_path = model_path if model_path is not None else MODEL_PATH
         self._load_model()
 
     def _load_model(self):
-        if os.path.exists(MODEL_PATH):
+        if self.model_path and os.path.exists(self.model_path):
             try:
-                artifacts = joblib.load(MODEL_PATH)
+                artifacts = joblib.load(self.model_path)
                 self.model = artifacts.get("model")
                 self.scaler = artifacts.get("scaler")
             except Exception as e:
