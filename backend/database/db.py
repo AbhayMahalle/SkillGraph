@@ -5,10 +5,14 @@ as well as PostgreSQL via the DATABASE_URL environment variable.
 """
 
 import os
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/processed/skillgraph.db")
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_DB_PATH = REPO_ROOT / "data" / "processed" / "skillgraph.db"
+
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH.as_posix()}")
 
 # SQLite needs check_same_thread=False for multi-threaded FastAPI workers
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

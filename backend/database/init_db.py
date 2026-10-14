@@ -6,21 +6,43 @@ Reads processed JSON datasets and populates the SQLite/PostgreSQL database table
 import os
 import json
 import hashlib
-from backend.database.db import engine, Base, SessionLocal
+from pathlib import Path
+from backend.database.db import engine, Base, SessionLocal, REPO_ROOT
 from backend.models.models import (
     User, Employee, Skill, EmployeeSkill, Role, RoleSkill,
     Course, CourseSkill, CoursePrerequisite, EmployeeCourse
 )
 
-PROCESSED_DIR = "data/processed"
+PROCESSED_DIR = os.getenv("PROCESSED_DIR", str(REPO_ROOT / "data" / "processed"))
 
 def hash_pw(pw: str) -> str:
     """Simple deterministic hash for demo authentication."""
     return hashlib.sha256(pw.encode()).hexdigest()
 
+def ensure_schema_migrations(db_engine):
+    """Safely adds Phase 3 columns to employee_skills if not already present."""
+    with db_engine.connect() as conn:
+        try:
+            result = conn.exec_driver_sql("PRAGMA table_info(employee_skills)").fetchall()
+            existing_cols = {row[1] for row in result}
+            if existing_cols:
+                if "source" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN source VARCHAR(50) DEFAULT 'self_reported'")
+                if "evidence" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN evidence TEXT")
+                if "created_at" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN created_at VARCHAR(50)")
+                if "updated_at" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN updated_at VARCHAR(50)")
+                conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_employee_skills_emp_skill ON employee_skills (employee_id, skill_id)")
+                conn.commit()
+        except Exception as e:
+            print(f"[DB INIT] Schema migration notice: {e}")
+
 def seed_database():
     print("[DB INIT] Creating database tables...")
     Base.metadata.create_all(bind=engine)
+    ensure_schema_migrations(engine)
     session = SessionLocal()
 
     try:
@@ -152,12 +174,11 @@ def seed_database():
                     session.add(ec)
 
                 # Create User Account for authentication
-                is_hr = "HR" in e["current_role"] or "sarah" in e["email"].lower()
                 user_obj = User(
                     email=e["email"],
-                    hashed_password=hash_pw("admin123" if is_hr else "employee123"),
+                    hashed_password=hash_pw("employee123"),
                     full_name=e["name"],
-                    role="HR" if is_hr else "EMPLOYEE",
+                    role="EMPLOYEE",
                     employee_id=e["employee_id"]
                 )
                 session.add(user_obj)

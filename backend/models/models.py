@@ -58,7 +58,11 @@ class EmployeeSkill(Base):
     employee_id = Column(String(50), ForeignKey("employees.employee_id"), nullable=False)
     skill_id = Column(String(50), ForeignKey("skills.skill_id"), nullable=False)
     proficiency = Column(String(50), default="Intermediate")  # Beginner, Intermediate, Advanced, Expert
-    verified = Column(Boolean, default=True)
+    verified = Column(Boolean, default=False)
+    source = Column(String(50), default="self_reported")  # self_reported, resume_extracted, assessment, project
+    evidence = Column(Text, nullable=True)
+    created_at = Column(String(50), nullable=True)
+    updated_at = Column(String(50), nullable=True)
 
     employee = relationship("Employee", back_populates="skills")
     skill = relationship("Skill", back_populates="employee_skills")
