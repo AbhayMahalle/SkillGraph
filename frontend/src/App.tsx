@@ -287,8 +287,13 @@ export const App: React.FC = () => {
             <LearningPathView
               roleId={selectedRoleId}
               allRoles={allRoles}
+              targetRoleId={profile?.target_role_id}
               onSelectRole={(rid) => setSelectedRoleId(rid)}
               onNavigateTab={handleNavigate}
+              onRefreshProfile={() => {
+                const token = localStorage.getItem('token');
+                if (token) loadUserData(token);
+              }}
             />
           )}
 

@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from backend.database.db import get_db, REPO_ROOT
 from backend.models.models import (
     User, Employee, Skill, EmployeeSkill, Role, RoleSkill,
-    Course, CourseSkill, CoursePrerequisite, EmployeeCourse
+    Course, CourseSkill, CoursePrerequisite, EmployeeCourse, EmployeeRoadmap
 )
 from backend.api.auth import (
     hash_password, verify_password, create_access_token,
@@ -107,8 +107,21 @@ class ProfileUpdateRequest(BaseModel):
 class ResumeTextRequest(BaseModel):
     text: str
 
+class CourseProgressUpdate(BaseModel):
+    status: str
+    progress_pct: Optional[int] = None
+
+class RoadmapRefreshRequest(BaseModel):
+    target_role_id: Optional[str] = None
+
+class HypotheticalSkill(BaseModel):
+    skill_name: Optional[str] = None
+    skill_id: Optional[str] = None
+    proficiency: str = "Intermediate"
+
 class WhatIfRequest(BaseModel):
     target_role_id: str
+    skills: List[HypotheticalSkill] = []
     additional_skills: List[str] = []
     completed_course_ids: List[str] = []
 
@@ -540,6 +553,12 @@ def add_employee_skill(
     if not emp:
         raise HTTPException(status_code=404, detail="Employee profile not found")
 
+    if not req.skill_name or not req.skill_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Skill name cannot be empty or whitespace"
+        )
+
     if req.proficiency not in VALID_PROFICIENCIES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -547,6 +566,11 @@ def add_employee_skill(
         )
 
     norm_name = normalize_skill_name(req.skill_name)
+    if not norm_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Skill name is invalid or cannot be normalized"
+        )
     skill = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
     if not skill:
         skill = Skill(
@@ -588,7 +612,8 @@ def add_employee_skill(
             updated_at=now_iso
         )
         db.add(new_es)
-
+    if emp.roadmap:
+        db.delete(emp.roadmap)
     db.commit()
     return {
         "status": "success",
@@ -919,6 +944,8 @@ def set_employee_target_role(
         )
 
     emp.target_role_id = role.role_id
+    if emp.roadmap:
+        db.delete(emp.roadmap)
     db.commit()
     db.refresh(emp)
     return {
@@ -941,9 +968,10 @@ def compare_roles(
         raise HTTPException(status_code=404, detail="Employee profile not found")
 
     ids = [rid.strip() for rid in role_ids.split(",") if rid.strip()]
-    if len(ids) < 2:
-        raise HTTPException(status_code=400, detail="Provide at least 2 role IDs to compare (e.g. ?role_ids=ROL-001,ROL-002)")
-    if len(ids) > 4:
+    unique_ids = list(dict.fromkeys(ids))
+    if len(unique_ids) < 2:
+        raise HTTPException(status_code=400, detail="Provide at least 2 distinct role IDs to compare (e.g. ?role_ids=ROL-001,ROL-002)")
+    if len(unique_ids) > 4:
         raise HTTPException(status_code=400, detail="A maximum of 4 roles can be compared simultaneously")
 
     emp_skills = [
@@ -961,7 +989,7 @@ def compare_roles(
     all_req_sets = []
     all_missing_sets = []
 
-    for rid in ids:
+    for rid in unique_ids:
         r = db.query(Role).filter(Role.role_id == rid).first()
         if not r:
             raise HTTPException(status_code=404, detail=f"Role '{rid}' not found in canonical catalog")
@@ -1270,12 +1298,127 @@ def get_skill_gap_analysis(
         "readiness_prediction": readiness
     }
 
+def compute_and_save_employee_roadmap(emp: Employee, role: Role, db: Session) -> Dict[str, Any]:
+    """Helper that generates personalized roadmap for an employee against a role and persists it."""
+    emp_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
+    req_skills = [rs.skill.name for rs in role.required_skills if rs.skill]
+    weights = {rs.skill.name: rs.importance_weight for rs in role.required_skills if rs.skill}
+
+    db_courses = db.query(EmployeeCourse).filter(EmployeeCourse.employee_id == emp.employee_id).all()
+    completed_courses = [c.course_id for c in db_courses if c.status == "completed"]
+    course_progress_map = {
+        c.course_id: {"status": c.status, "progress_pct": c.progress_pct or 0}
+        for c in db_courses
+    }
+
+    roadmap = learning_path_generator.generate_personalized_roadmap(
+        employee_skills=emp_skills,
+        employee_exp_years=emp.experience_years,
+        role_required_skills=req_skills,
+        role_exp_years=role.experience_years,
+        role_skill_weights=weights,
+        target_role_id=role.role_id,
+        target_role_title=role.title,
+        target_role_department=role.department,
+        completed_course_ids=completed_courses,
+        course_progress_map=course_progress_map
+    )
+
+    now_str = datetime.utcnow().isoformat()
+    emp_roadmap = db.query(EmployeeRoadmap).filter(EmployeeRoadmap.employee_id == emp.employee_id).first()
+    if not emp_roadmap:
+        emp_roadmap = EmployeeRoadmap(
+            employee_id=emp.employee_id,
+            target_role_id=role.role_id,
+            roadmap_data=json.dumps(roadmap),
+            created_at=now_str,
+            updated_at=now_str
+        )
+        db.add(emp_roadmap)
+    else:
+        emp_roadmap.target_role_id = role.role_id
+        emp_roadmap.roadmap_data = json.dumps(roadmap)
+        emp_roadmap.updated_at = now_str
+    db.commit()
+
+    return roadmap
+
+@api_router.get("/roadmap")
+def get_current_user_roadmap(
+    role_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves the authenticated user's personalized learning roadmap for their designated target role
+    (or an explicitly queried role_id).
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    target_id = (role_id or emp.target_role_id or "").strip()
+    if not target_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No target role selected. Please select a target role to generate your personalized learning roadmap."
+        )
+
+    role = db.query(Role).filter(Role.role_id == target_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail=f"Target role '{target_id}' not found in canonical catalog")
+
+    roadmap = compute_and_save_employee_roadmap(emp, role, db)
+    return roadmap
+
+@api_router.post("/roadmap/generate")
+@api_router.post("/roadmap/refresh")
+def refresh_current_user_roadmap(
+    req: Optional[RoadmapRefreshRequest] = None,
+    role_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Forces recalculation of the personalized learning roadmap using current skills and target role.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    target_id = (req.target_role_id if req and req.target_role_id else None) or role_id or emp.target_role_id or ""
+    target_id = target_id.strip()
+    if not target_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No target role selected. Please select a target role to generate your personalized learning roadmap."
+        )
+
+    role = db.query(Role).filter(Role.role_id == target_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail=f"Target role '{target_id}' not found in canonical catalog")
+
+    roadmap = compute_and_save_employee_roadmap(emp, role, db)
+    return roadmap
+
 @api_router.get("/analysis/learning-path/{role_id}")
 def get_learning_path(
     role_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """
+    Backward-compatible learning path endpoint returning the full Phase 5 personalized roadmap.
+    """
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Employee profile not found")
@@ -1284,21 +1427,243 @@ def get_learning_path(
     if not role:
         raise HTTPException(status_code=404, detail="Target role not found")
 
+    roadmap = compute_and_save_employee_roadmap(emp, role, db)
+
     emp_skill_names = {es.skill.name.lower() for es in emp.skills if es.skill}
     missing_skills = [rs.skill.name for rs in role.required_skills if rs.skill and rs.skill.name.lower() not in emp_skill_names]
-
-    completed_courses = [c.course_id for c in emp.courses if c.status == "completed"]
-
-    path_result = learning_path_generator.generate_path(
-        missing_skills=missing_skills,
-        completed_course_ids=completed_courses
-    )
 
     return {
         "target_role_id": role.role_id,
         "target_role_title": role.title,
         "missing_skills": missing_skills,
-        "learning_path": path_result
+        "learning_path": roadmap,
+        **roadmap
+    }
+
+@api_router.get("/courses")
+def get_canonical_courses(db: Session = Depends(get_db)):
+    """Retrieves all 18 canonical curriculum courses with skills taught and prerequisites."""
+    courses = db.query(Course).order_by(Course.course_id).all()
+    result = []
+    for c in courses:
+        prereqs = [p.prerequisite_course_id for p in c.prerequisites]
+        skills_taught = [cs.skill.name for cs in c.skills_taught if cs.skill]
+        result.append({
+            "course_id": c.course_id,
+            "title": c.title,
+            "provider": c.provider,
+            "duration_weeks": c.duration_weeks,
+            "level": c.level,
+            "description": c.description,
+            "skills_taught": skills_taught,
+            "prerequisites": prereqs
+        })
+    return result
+
+@api_router.get("/roadmap/courses/{course_id}")
+def get_roadmap_course_details(
+    course_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves detailed curriculum, prerequisite, targeted skill, and authenticated user progress
+    for a specific course.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    course = db.query(Course).filter(Course.course_id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail=f"Course '{course_id}' not found in catalog")
+
+    ec = db.query(EmployeeCourse).filter(
+        EmployeeCourse.employee_id == emp.employee_id,
+        EmployeeCourse.course_id == course_id
+    ).first()
+
+    prereqs = [cp.prerequisite_course_id for cp in course.prerequisites]
+    cinfo = learning_path_generator.courses.get(course_id, {})
+    skills_taught = cinfo.get("skills_taught", [])
+    if not skills_taught:
+        skills_taught = [cs.skill.name for cs in course.skills_taught if cs.skill]
+
+    status_val = ec.status if ec else "not_started"
+    progress_pct = ec.progress_pct if ec else 0
+
+    return {
+        "course_id": course.course_id,
+        "title": course.title,
+        "provider": course.provider,
+        "duration_weeks": course.duration_weeks,
+        "level": course.level,
+        "description": course.description,
+        "skills_taught": skills_taught,
+        "prerequisites": prereqs,
+        "user_status": status_val,
+        "user_progress_pct": progress_pct
+    }
+
+@api_router.put("/roadmap/courses/{course_id}/progress")
+@api_router.patch("/roadmap/courses/{course_id}/progress")
+def update_roadmap_course_progress(
+    course_id: str,
+    req: CourseProgressUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Updates status and progress percentage strictly for a course belonging to the authenticated user's active roadmap.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    valid_statuses = {"not_started", "in_progress", "completed"}
+    if req.status not in valid_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status '{req.status}'. Must be one of: {', '.join(sorted(valid_statuses))}"
+        )
+
+    if not emp.target_role_id:
+        raise HTTPException(status_code=400, detail="No target role selected for employee.")
+
+    role = db.query(Role).filter(Role.role_id == emp.target_role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Target role not found")
+
+    emp_roadmap = db.query(EmployeeRoadmap).filter(EmployeeRoadmap.employee_id == emp.employee_id).first()
+    if not emp_roadmap or emp_roadmap.target_role_id != role.role_id:
+        roadmap_data = compute_and_save_employee_roadmap(emp, role, db)
+    else:
+        roadmap_data = json.loads(emp_roadmap.roadmap_data)
+
+    milestone_cids = {m["course_id"] for m in roadmap_data.get("milestones", [])}
+    if course_id not in milestone_cids:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Course '{course_id}' is not part of your active learning roadmap."
+        )
+
+    VALID_COURSE_STATUSES = {"not_started", "in_progress", "completed"}
+    if req.status not in VALID_COURSE_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid course status '{req.status}'. Allowed statuses: {', '.join(sorted(VALID_COURSE_STATUSES))}"
+        )
+
+    ec = db.query(EmployeeCourse).filter(
+        EmployeeCourse.employee_id == emp.employee_id,
+        EmployeeCourse.course_id == course_id
+    ).first()
+    now_iso = datetime.utcnow().isoformat()
+    if not ec:
+        init_progress = (
+            100 if req.status == "completed" else (
+                max(0, min(100, req.progress_pct)) if req.progress_pct is not None else (
+                    50 if req.status == "in_progress" else 0
+                )
+            )
+        )
+        ec = EmployeeCourse(
+            employee_id=emp.employee_id,
+            course_id=course_id,
+            status=req.status,
+            progress_pct=init_progress,
+            updated_at=now_iso
+        )
+        db.add(ec)
+    else:
+        ec.status = req.status
+        if req.status == "completed":
+            ec.progress_pct = 100
+        elif req.progress_pct is not None:
+            ec.progress_pct = max(0, min(100, req.progress_pct))
+        elif req.status == "not_started":
+            ec.progress_pct = 0
+        ec.updated_at = now_iso
+
+    db.commit()
+
+    updated_roadmap = compute_and_save_employee_roadmap(emp, role, db)
+    updated_milestone = next((m for m in updated_roadmap["milestones"] if m["course_id"] == course_id), None)
+
+    return {
+        "status": "success",
+        "course_id": course_id,
+        "course_status": ec.status,
+        "progress_pct": ec.progress_pct,
+        "milestone": updated_milestone,
+        "roadmap_summary": {
+            "overall_progress_pct": updated_roadmap["overall_progress_pct"],
+            "completed_courses_count": updated_roadmap["completed_courses_count"],
+            "in_progress_courses_count": updated_roadmap["in_progress_courses_count"],
+            "not_started_courses_count": updated_roadmap["not_started_courses_count"],
+            "total_courses": updated_roadmap["total_courses"],
+            "total_estimated_weeks": updated_roadmap["total_estimated_weeks"]
+        }
+    }
+
+@api_router.get("/analysis/readiness/{role_id}")
+@api_router.get("/analysis/readiness")
+def get_career_readiness_assessment(
+    role_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves transparent, multi-factor career readiness assessment for the user against their target role.
+    Distinguishes operational readiness from lexical role-matching.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    target_id = (role_id or emp.target_role_id or "").strip()
+    if not target_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No target role selected. Please designate a target role to assess career readiness."
+        )
+
+    role = db.query(Role).filter(Role.role_id == target_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail=f"Target role '{target_id}' not found in canonical catalog")
+
+    emp_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
+    req_skills = [rs.skill.name for rs in role.required_skills if rs.skill]
+    weights = {rs.skill.name: rs.importance_weight for rs in role.required_skills if rs.skill}
+
+    completed_courses = [c.course_id for c in emp.courses if c.status == "completed"]
+
+    assessment = readiness_predictor.assess_career_readiness(
+        employee_skills=emp_skills,
+        employee_exp_years=emp.experience_years,
+        role_required_skills=req_skills,
+        role_exp_years=role.experience_years,
+        role_skill_weights=weights,
+        completed_courses_count=len(completed_courses),
+        total_roadmap_courses=len(completed_courses) + 3
+    )
+
+    return {
+        "target_role_id": role.role_id,
+        "target_role_title": role.title,
+        "department": role.department,
+        "experience_years_required": role.experience_years,
+        "employee_experience_years": emp.experience_years,
+        **assessment
     }
 
 @api_router.post("/analysis/what-if")
@@ -1308,7 +1673,9 @@ def simulate_what_if(
     db: Session = Depends(get_db)
 ):
     """
-    Simulates skill acquisition and course completion. Recalculates real-time match and readiness.
+    Runs hypothetical career transition simulations without modifying saved user profiles.
+    Allows adjusting proficiency levels on missing or partially met skills.
+    Returns explainable before-and-after match and readiness metrics.
     """
     emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
     if not emp:
@@ -1316,43 +1683,140 @@ def simulate_what_if(
 
     role = db.query(Role).filter(Role.role_id == req.target_role_id).first()
     if not role:
-        raise HTTPException(status_code=404, detail="Target role not found")
-
-    # Base skills
-    simulated_skills = [{"name": es.skill.name, "proficiency": es.proficiency} for es in emp.skills if es.skill]
-    sim_skill_names = {s["name"].lower() for s in simulated_skills}
-
-    # Add extra skills from courses completed
-    courses_file = os.path.join(PROCESSED_DIR, "course_catalog.json")
-    if os.path.exists(courses_file) and req.completed_course_ids:
-        with open(courses_file, "r") as f:
-            c_dict = {c["course_id"]: c for c in json.load(f)}
-        for cid in req.completed_course_ids:
-            if cid in c_dict:
-                for taught in c_dict[cid].get("skills_taught", []):
-                    if taught.lower() not in sim_skill_names:
-                        simulated_skills.append({"name": taught, "proficiency": "Intermediate"})
-                        sim_skill_names.add(taught.lower())
-
-    # Add manually toggled additional skills
-    for add_sk in req.additional_skills:
-        if add_sk.lower() not in sim_skill_names:
-            simulated_skills.append({"name": add_sk, "proficiency": "Advanced"})
-            sim_skill_names.add(add_sk.lower())
+        raise HTTPException(status_code=404, detail=f"Target role '{req.target_role_id}' not found in canonical catalog")
 
     req_skills = [rs.skill.name for rs in role.required_skills if rs.skill]
     weights = {rs.skill.name: rs.importance_weight for rs in role.required_skills if rs.skill}
 
-    # Base match before simulation
+    # 1. Base skills
+    base_skills = [
+        {
+            "name": es.skill.name,
+            "proficiency": es.proficiency,
+            "source": es.source or "self_reported",
+            "verified": es.verified,
+            "evidence": es.evidence
+        }
+        for es in emp.skills if es.skill
+    ]
+
+    # 2. Build simulated skills dictionary (case-insensitive name key)
+    sim_skills_dict = {
+        s["name"].lower(): {
+            "name": s["name"],
+            "proficiency": s["proficiency"],
+            "source": s.get("source", "self_reported"),
+            "verified": s.get("verified", False),
+            "evidence": s.get("evidence")
+        }
+        for s in base_skills
+    }
+
+    assumptions = []
+
+    # 3. Apply structured hypothetical skills
+    for h_sk in req.skills:
+        if not h_sk.skill_id and not (h_sk.skill_name and h_sk.skill_name.strip()):
+            raise HTTPException(
+                status_code=400,
+                detail="Each hypothetical skill must specify 'skill_name' or 'skill_id'"
+            )
+        if h_sk.proficiency not in VALID_PROFICIENCIES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid proficiency '{h_sk.proficiency}'. Allowed levels: {', '.join(sorted(VALID_PROFICIENCIES))}"
+            )
+
+        skill_obj = None
+        if h_sk.skill_id:
+            skill_obj = db.query(Skill).filter(Skill.skill_id == h_sk.skill_id).first()
+            if not skill_obj:
+                raise HTTPException(status_code=400, detail=f"Skill ID '{h_sk.skill_id}' not found in catalog")
+        elif h_sk.skill_name:
+            norm_name = normalize_skill_name(h_sk.skill_name)
+            skill_obj = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
+            if not skill_obj:
+                raise HTTPException(status_code=400, detail=f"Skill '{h_sk.skill_name}' not found in catalog")
+
+        if skill_obj:
+            canonical_name = skill_obj.name
+            key = canonical_name.lower()
+            prev_prof = sim_skills_dict.get(key, {}).get("proficiency")
+            sim_skills_dict[key] = {
+                "name": canonical_name,
+                "proficiency": h_sk.proficiency,
+                "source": "simulated_hypothetical",
+                "verified": True,
+                "evidence": "Hypothetical what-if simulation"
+            }
+            if prev_prof:
+                assumptions.append(f"Adjusted '{canonical_name}' proficiency from {prev_prof} to {h_sk.proficiency}.")
+            else:
+                assumptions.append(f"Hypothetically acquired '{canonical_name}' at {h_sk.proficiency} level.")
+
+    # 4. Backward compatibility: apply string additional_skills
+    for add_sk_name in req.additional_skills:
+        norm_name = normalize_skill_name(add_sk_name)
+        skill_obj = db.query(Skill).filter(Skill.name.ilike(norm_name)).first()
+        if not skill_obj:
+            raise HTTPException(status_code=400, detail=f"Skill '{add_sk_name}' not found in catalog")
+        canonical_name = skill_obj.name
+        key = canonical_name.lower()
+        if key not in sim_skills_dict or sim_skills_dict[key]["proficiency"] == "Beginner":
+            sim_skills_dict[key] = {
+                "name": canonical_name,
+                "proficiency": "Advanced",
+                "source": "simulated_hypothetical",
+                "verified": True,
+                "evidence": "Hypothetical what-if simulation"
+            }
+            assumptions.append(f"Hypothetically acquired '{canonical_name}' at Advanced level.")
+
+    # 5. Apply hypothetical completed courses
+    if req.completed_course_ids:
+        for cid in req.completed_course_ids:
+            course = db.query(Course).filter(Course.course_id == cid).first()
+            if not course:
+                raise HTTPException(status_code=400, detail=f"Course ID '{cid}' not found in catalog")
+            cinfo = learning_path_generator.courses.get(cid, {})
+            skills_taught = cinfo.get("skills_taught", [cs.skill.name for cs in course.skills_taught if cs.skill])
+            for taught in skills_taught:
+                key = taught.lower()
+                if key not in sim_skills_dict:
+                    sim_skills_dict[key] = {
+                        "name": taught,
+                        "proficiency": "Intermediate",
+                        "source": "simulated_course_completion",
+                        "verified": True,
+                        "evidence": f"Simulated completion of {cid}"
+                    }
+            assumptions.append(f"Completed '{course.title}' ({cid}), learning: {', '.join(skills_taught)}.")
+
+    simulated_skills = list(sim_skills_dict.values())
+
+    # 6. Calculate baseline match and readiness
     base_match = calculate_role_match(
-        employee_skills=[{"name": es.skill.name, "proficiency": es.proficiency} for es in emp.skills if es.skill],
+        employee_skills=base_skills,
         employee_exp_years=emp.experience_years,
         role_required_skills=req_skills,
         role_exp_years=role.experience_years,
         role_skill_weights=weights
     )
 
-    # Simulated match
+    completed_courses = [c.course_id for c in emp.courses if c.status == "completed"]
+    shared_total_courses = max(len(completed_courses) + 3, 5)
+
+    base_readiness = readiness_predictor.assess_career_readiness(
+        employee_skills=base_skills,
+        employee_exp_years=emp.experience_years,
+        role_required_skills=req_skills,
+        role_exp_years=role.experience_years,
+        role_skill_weights=weights,
+        completed_courses_count=len(completed_courses),
+        total_roadmap_courses=shared_total_courses
+    )
+
+    # 7. Calculate simulated match and readiness
     sim_match = calculate_role_match(
         employee_skills=simulated_skills,
         employee_exp_years=emp.experience_years,
@@ -1361,35 +1825,82 @@ def simulate_what_if(
         role_skill_weights=weights
     )
 
-    sim_readiness = readiness_predictor.evaluate_transition(
-        current_match_score=sim_match["match_score"],
-        missing_skills_count=sim_match["missing_count"],
-        total_skills_count=sim_match["total_required"],
-        exp_delta=sim_match["experience_delta"]
+    sim_completed_courses = set(completed_courses).union(req.completed_course_ids)
+
+    if not req.skills and not req.additional_skills and not req.completed_course_ids:
+        # Exact identity when no hypothetical inputs are supplied
+        sim_readiness = base_readiness
+    else:
+        sim_readiness = readiness_predictor.assess_career_readiness(
+            employee_skills=simulated_skills,
+            employee_exp_years=emp.experience_years,
+            role_required_skills=req_skills,
+            role_exp_years=role.experience_years,
+            role_skill_weights=weights,
+            completed_courses_count=len(sim_completed_courses),
+            total_roadmap_courses=shared_total_courses
+        )
+
+    match_gain = round(sim_match["match_score"] - base_match["match_score"], 1)
+    readiness_gain = round(sim_readiness["readiness_score"] - base_readiness["readiness_score"], 1)
+    skills_closed = base_match["missing_count"] - sim_match["missing_count"]
+
+    if not assumptions:
+        assumptions.append("No hypothetical modifications selected; simulated profile identical to baseline.")
+
+    summary_text = (
+        f"Simulating this scenario yields a +{match_gain}% match gain and a "
+        f"{'+' if readiness_gain >= 0 else ''}{readiness_gain}% readiness adjustment, "
+        f"closing {skills_closed} missing skill gap(s)."
     )
 
     return {
         "target_role": role.title,
+        "target_role_id": role.role_id,
+        "is_hypothetical": True,
+        "assumptions": assumptions,
         "baseline": {
             "match_score": base_match["match_score"],
             "coverage_percentage": base_match["coverage_percentage"],
             "mobility_status": base_match["mobility_status"],
-            "missing_count": base_match["missing_count"]
+            "readiness_score": base_readiness["readiness_score"],
+            "readiness_level": base_readiness["readiness_level"],
+            "missing_count": base_match["missing_count"],
+            "partially_met_count": base_match.get("partially_met_count", 0),
+            "met_count": base_match.get("met_count", 0),
+            "gaps": base_match.get("gaps", []),
+            "contributing_factors": base_readiness["contributing_factors"]
         },
         "simulated": {
             "match_score": sim_match["match_score"],
             "coverage_percentage": sim_match["coverage_percentage"],
             "mobility_status": sim_match["mobility_status"],
+            "readiness_score": sim_readiness["readiness_score"],
+            "readiness_level": sim_readiness["readiness_level"],
             "missing_count": sim_match["missing_count"],
-            "matched_skills": [m["skill_name"] for m in sim_match["matched_skills"]],
-            "missing_skills": [m["skill_name"] for m in sim_match["missing_skills"]],
-            "projected_readiness_pct": sim_readiness["current_readiness_pct"],
-            "readiness_verdict": sim_readiness["transition_verdict"]
+            "partially_met_count": sim_match.get("partially_met_count", 0),
+            "met_count": sim_match.get("met_count", 0),
+            "gaps": sim_match.get("gaps", []),
+            "matched_skills": [m["skill_name"] for m in sim_match.get("matched_skills", [])],
+            "missing_skills": [m["skill_name"] for m in sim_match.get("missing_skills", [])],
+            "contributing_factors": sim_readiness["contributing_factors"],
+            "projected_readiness_pct": sim_readiness["readiness_score"],
+            "readiness_verdict": sim_readiness["readiness_level"]
         },
         "deltas": {
-            "match_gain": round(sim_match["match_score"] - base_match["match_score"], 1),
-            "skills_closed": base_match["missing_count"] - sim_match["missing_count"]
-        }
+            "match_gain": match_gain,
+            "readiness_gain": readiness_gain,
+            "skills_closed": skills_closed
+        },
+        "explanation": {
+            "distinction": (
+                "Role Match evaluates lexical skill keyword overlap against role requirements. "
+                "Career Readiness measures practical day-to-day transition capability, "
+                "incorporating competency criticality, verified proficiency depth, and experience tenure."
+            ),
+            "summary": summary_text
+        },
+        "limitations": "Deterministic heuristic baseline. Real-world transition success requires ongoing managerial feedback, practical execution, and empirical validation."
     }
 
 # ---------------------------------------------------------

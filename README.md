@@ -295,26 +295,50 @@ Resume Upload (PDF/DOCX/TXT)
 
 ---
 
-## 🧪 Verified Capabilities & Test Suite (55 Passing Tests)
+## 🧪 Verified Capabilities & Test Suite (91 Passing Tests)
 
 | Component | Status | Verified Details |
 |---|---|---|
 | **Phase 1 Foundation Suite** | ✅ 11/11 PASS | DAG topology, NLP extraction, matching math, catalog counts, health |
-| **Phase 2 Authentication Suite** | ✅ 16/16 PASS | Registration, login, PBKDF2 hash upgrade, token invalidation, profile patch, isolation |
-| **Phase 3 Skill Profiling & Resume Suite** | ✅ 16/16 PASS | Skill CRUD, validation, PDF/DOCX/TXT extraction, staging, review, provenance |
+| **Phase 2 Authentication Suite** | ✅ 16/16 PASS | Registration, login, PBKDF2 hash upgrade, token invalidation, profile patch, multi-user isolation |
+| **Phase 3 Skill Profiling & Resume Suite** | ✅ 16/16 PASS | Skill CRUD, validation, PDF/DOCX/TXT extraction, staging, review, provenance tracking |
 | **Phase 4 Matching & Gap Suite** | ✅ 12/12 PASS | Target-role selection, search, explainable match, gap classification, multi-role comparison, isolation |
-| **Total Automated Tests** | ✅ **55/55 PASS** | Complete regression test suite passes cleanly in 5.81s |
-| **Frontend Production Build** | ✅ **PASS** | `tsc && vite build` builds 0 errors in 2.25s (295 kB bundle) |
-| **Live API End-to-End** | ✅ **PASS** | Verified live on port 8000 (search, target role persistence, 3-role comparison, gap breakdown) |
+| **Phase 5 Learning Roadmap Suite** | ✅ 12/12 PASS | Personalized roadmap generation, DAG topological ordering, unaddressed gaps, course progress tracking, user isolation |
+| **Phase 6 Readiness & Simulation Suite** | ✅ 8/8 PASS | Multi-factor readiness assessment, verified provenance, heuristic removal, non-persistent what-if simulation, isolation |
+| **Phase 7 Integration & QA Suite** | ✅ 8/8 PASS | End-to-end user lifecycle, cross-user privacy, auth boundaries, upload security, DAG topological verification, zero-side-effects |
+| **Phase 8 Master Acceptance Suite** | ✅ 8/8 PASS | Canonical courses catalog API, distinct role comparison, course progress bounds clamping, what-if validation, SQL injection resilience |
+| **Total Automated Tests** | ✅ **91/91 PASS** | Complete regression test suite passes cleanly in 10.95s |
+| **Frontend Production Build** | ✅ **PASS** | `tsc && vite build` compiles with 0 errors in 2.42s (329 kB bundle) |
+| **Database Integrity** | ✅ **VERIFIED** | `PRAGMA integrity_check: ok`; 119 skills, 96 roles, 18 courses, 20 prerequisite edges intact |
 
 ---
 
-## 🔬 Known Limitations & Future Roadmap
+## 🛡️ Phase 7 Integration, Quality Assurance & Polish Highlights
+
+1. **Complete End-to-End User Journey**:
+   - `Registration` $\to$ `Profile Init` $\to$ `Resume Upload & Staged Skill Review` $\to$ `Target-Role Selection` $\to$ `Skill-Gap Analysis` $\to$ `Personalized Roadmap` $\to$ `Learning Progress` $\to$ `Career Readiness Assessment & What-If Simulation`.
+2. **Elimination of Mock/Fake Metrics**:
+   - Replaced all fallback static values (e.g. hardcoded `41.2%` match, `90.5%` readiness, and default `'Cloud Engineer'` role) in `EmployeeDashboard` with real-time authenticated backend calls to `/api/analysis/readiness` and `/api/roles/recommendations`.
+   - Handled empty profile states gracefully with clear, actionable onboarding prompts ("No Target Role Selected" $\to$ "Choose a Target Role").
+3. **UI Polish & Non-Disruptive Notifications**:
+   - Removed native `alert(...)` dialogs from `LearningPathView` in favor of inline banner alert states and toast feedback.
+   - Refreshed dashboard KPI cards with real-time readiness scores, mobility status badges, and transition feasibility verdicts.
+4. **Strict Multi-Tenant Isolation & Security**:
+   - User A and User B profiles, roadmaps, course progress records, and staged resume extractions are strictly isolated. Cross-user modification attempts return HTTP 400/404.
+   - Unauthorized access without Bearer tokens is rejected with HTTP 401/403.
+   - Password changes enforce PBKDF2 hash verification, minimum length requirements, and invalidation of old credentials.
+   - Resume file uploads enforce magic byte inspection, 10 MB size limits, and allowlist extension validation (.pdf, .docx, .txt).
+5. **Roadmap Curriculum Progress Synchronization**:
+   - Completed curriculum courses are retained in the user's active roadmap milestones with `status: "completed"`, `progress_pct: 100`, accurately incrementing `completed_courses_count` and overall curriculum progress.
+
+---
+
+## 🔬 Known Limitations & Architecture Notes
 
 1. **Token Storage**: JWT access tokens are stored in `localStorage` for SPA client state. In future enterprise phases, tokens may be transitioned to `HttpOnly` SameSite cookies with CSRF protection.
 2. **Token Revocation Storage**: Revoked tokens are currently tracked in-memory per process instance. In distributed multi-worker deployments, a shared Redis cache or database revocation table should be used.
 3. **OCR Processing**: Scanned/image-only PDFs are safely detected and rejected with a helpful user prompt; optical character recognition (OCR) can be integrated in later phases if required.
-4. **Readiness Model Training Data**: The transition readiness model (`readiness_model.joblib`) uses synthetic feature distributions. Phase 6 will retrain the predictor with authentic employee transition data.
-5. **Scope Boundaries**: Learning roadmap generation, course enrollment/progress, assessments, and readiness retraining are deferred to Phase 5 and beyond.
+4. **Readiness Evaluation Methodology**: Career readiness utilizes a transparent, explainable multi-factor rule-based baseline rather than synthetic model artifacts, explicitly communicating methodology details and limitations.
+5. **Scope Boundaries**: Phase 7 Integration, QA & Polish is complete. New Phase 8 features, external deployment, and HR/Admin capabilities remain excluded per project constraints.
 
 
