@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Target, Sparkles, TrendingUp, Award, 
   ArrowRight, BookOpen, CheckCircle, ChevronRight,
-  Briefcase, Compass, FileText, AlertCircle
+  Briefcase, Compass, FileText, AlertCircle, RefreshCw
 } from 'lucide-react';
 
 interface EmployeeDashboardProps {
@@ -18,7 +18,53 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
   onSelectRole,
   onNavigateTab
 }) => {
-  const targetRoleRec = recommendations.find(r => r.role_id === profile?.target_role_id) || recommendations[0];
+  const [readinessData, setReadinessData] = useState<any>(null);
+  const [loadingReadiness, setLoadingReadiness] = useState<boolean>(false);
+
+  const targetRoleId = profile?.target_role_id;
+  const hasTargetRole = Boolean(targetRoleId);
+  const targetRoleRec = recommendations.find(r => r.role_id === targetRoleId);
+
+  useEffect(() => {
+    if (!targetRoleId) {
+      setReadinessData(null);
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    setLoadingReadiness(true);
+    fetch(`/api/analysis/readiness/${encodeURIComponent(targetRoleId)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Could not fetch readiness');
+        return res.json();
+      })
+      .then(data => {
+        setReadinessData(data);
+        setLoadingReadiness(false);
+      })
+      .catch(() => {
+        setReadinessData(null);
+        setLoadingReadiness(false);
+      });
+  }, [targetRoleId]);
+
+  const matchScore = targetRoleRec?.match_score != null 
+    ? targetRoleRec.match_score 
+    : (readinessData?.skill_match_score != null ? readinessData.skill_match_score : null);
+
+  const readinessScore = readinessData?.readiness_score != null
+    ? readinessData.readiness_score
+    : (targetRoleRec?.projected_readiness_pct != null ? targetRoleRec.projected_readiness_pct : null);
+
+  const readinessLevel = readinessData?.readiness_level || (
+    readinessScore != null
+      ? (readinessScore >= 85 ? 'High Feasibility' : readinessScore >= 70 ? 'Moderate Feasibility' : 'Long-Term Upskilling')
+      : null
+  );
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px 48px' }}>
@@ -51,10 +97,10 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button 
-            onClick={() => onNavigateTab('skill-gap')}
+            onClick={() => onNavigateTab(hasTargetRole ? 'skill-gap' : 'roles')}
             className="btn btn-primary"
           >
-            <Target size={15} /> Analyze Target Gap
+            <Target size={15} /> {hasTargetRole ? 'Analyze Target Gap' : 'Select Target Role'}
           </button>
           <button 
             onClick={() => onNavigateTab('profile')}
@@ -81,11 +127,23 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
             <Target size={16} color="var(--accent-blue)" />
           </div>
           <h3 style={{ fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: 600, marginBottom: 4 }}>
-            {profile?.target_role_title || targetRoleRec?.title || 'Cloud Engineer'}
+            {hasTargetRole 
+              ? (profile?.target_role_title || readinessData?.target_role_title || targetRoleRec?.title || targetRoleId)
+              : 'None Selected'}
           </h3>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-            {targetRoleRec?.openings ? `${targetRoleRec.openings} open requisitions` : 'Active career goal'}
-          </p>
+          {hasTargetRole ? (
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              Department: {readinessData?.department || targetRoleRec?.department || 'Enterprise Architecture'}
+            </p>
+          ) : (
+            <button 
+              onClick={() => onNavigateTab('roles')}
+              className="btn btn-secondary" 
+              style={{ fontSize: '0.75rem', padding: '4px 10px', marginTop: 4 }}
+            >
+              Choose Target Role <ArrowRight size={12} />
+            </button>
+          )}
         </div>
 
         {/* Current Match */}
@@ -98,10 +156,12 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
             <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--accent-blue)' }}>
-              {targetRoleRec?.match_score != null ? `${targetRoleRec.match_score}%` : '41.2%'}
+              {matchScore != null ? `${matchScore}%` : '—'}
             </h3>
             <span className="badge badge-purple" style={{ fontSize: '0.68rem' }}>
-              {targetRoleRec?.mobility_status || 'Needs Upskilling'}
+              {hasTargetRole 
+                ? (targetRoleRec?.mobility_status || (matchScore != null && matchScore >= 70 ? 'Ready for Transition' : 'Needs Upskilling'))
+                : 'No Goal Selected'}
             </span>
           </div>
           <div style={{
@@ -111,30 +171,44 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
             overflow: 'hidden'
           }}>
             <div style={{
-              width: `${targetRoleRec?.match_score || 41}%`,
+              width: `${matchScore || 0}%`,
               height: '100%',
-              background: 'var(--accent-blue)',
-              borderRadius: 2
+              background: (matchScore || 0) >= 60 ? 'var(--accent-emerald)' : 'var(--accent-blue)',
+              borderRadius: 2,
+              transition: 'width 0.3s ease'
             }} />
           </div>
         </div>
 
-        {/* Projected Readiness */}
+        {/* Career Readiness */}
         <div className="saas-card" style={{ padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
-              Projected Readiness
+              Career Readiness
             </span>
             <Sparkles size={16} color="var(--accent-emerald)" />
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
             <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>
-              {targetRoleRec?.projected_readiness_pct != null ? `${targetRoleRec.projected_readiness_pct}%` : '90.5%'}
+              {loadingReadiness ? (
+                <RefreshCw size={20} className="animate-spin" />
+              ) : (
+                readinessScore != null ? `${readinessScore}%` : '—'
+              )}
             </h3>
-            <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>High Feasibility</span>
+            {readinessLevel && (
+              <span className={`badge ${readinessScore && readinessScore >= 80 ? 'badge-emerald' : 'badge-amber'}`} style={{ fontSize: '0.68rem' }}>
+                {readinessLevel}
+              </span>
+            )}
+            {!hasTargetRole && (
+              <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>
+                Pending Goal
+              </span>
+            )}
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Estimated post-curriculum completion
+            {hasTargetRole ? 'Multi-factor practical capability' : 'Requires target role designation'}
           </p>
         </div>
 
@@ -174,7 +248,7 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
             className="btn btn-secondary" 
             style={{ fontSize: '0.82rem' }}
           >
-            <span>Browse All 96 Roles</span>
+            <span>Browse All Roles</span>
             <ArrowRight size={14} />
           </button>
         </div>
@@ -242,15 +316,21 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
                       Priority Missing Skills
                     </span>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {rec.missing_skills.slice(0, 3).map((sk: string) => (
-                        <span key={sk} className="badge badge-rose" style={{ fontSize: '0.68rem' }}>
-                          {sk}
-                        </span>
-                      ))}
-                      {rec.missing_skills.length > 3 && (
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', alignSelf: 'center' }}>
-                          +{rec.missing_skills.length - 3} more
-                        </span>
+                      {rec.missing_skills && rec.missing_skills.length > 0 ? (
+                        <>
+                          {rec.missing_skills.slice(0, 3).map((sk: string) => (
+                            <span key={sk} className="badge badge-rose" style={{ fontSize: '0.68rem' }}>
+                              {sk}
+                            </span>
+                          ))}
+                          {rec.missing_skills.length > 3 && (
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', alignSelf: 'center' }}>
+                              +{rec.missing_skills.length - 3} more
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>None missing</span>
                       )}
                     </div>
                   </div>
