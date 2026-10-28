@@ -1,6 +1,6 @@
 """
 SQLAlchemy ORM models for SkillGraph.
-Entities: User, Employee, Skill, EmployeeSkill, Role, RoleSkill, Course, CourseSkill, CoursePrerequisite.
+Entities: User, Employee, Skill, EmployeeSkill, Role, RoleSkill, Course, CourseSkill, CoursePrerequisite, EmployeeCourse, EmployeeRoadmap.
 """
 
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Text, Table
@@ -37,6 +37,7 @@ class Employee(Base):
     user = relationship("User", back_populates="employee", uselist=False)
     skills = relationship("EmployeeSkill", back_populates="employee", cascade="all, delete-orphan")
     courses = relationship("EmployeeCourse", back_populates="employee", cascade="all, delete-orphan")
+    roadmap = relationship("EmployeeRoadmap", back_populates="employee", uselist=False, cascade="all, delete-orphan")
 
 class Skill(Base):
     __tablename__ = "skills"
@@ -121,6 +122,7 @@ class CourseSkill(Base):
     skill_id = Column(String(50), ForeignKey("skills.skill_id"), nullable=False)
 
     course = relationship("Course", back_populates="skills_taught")
+    skill = relationship("Skill")
 
 class CoursePrerequisite(Base):
     __tablename__ = "course_prerequisites"
@@ -137,6 +139,22 @@ class EmployeeCourse(Base):
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String(50), ForeignKey("employees.employee_id"), nullable=False)
     course_id = Column(String(50), ForeignKey("courses.course_id"), nullable=False)
-    status = Column(String(50), default="completed")  # "completed", "in_progress"
+    status = Column(String(50), default="completed")  # "not_started", "in_progress", "completed"
+    progress_pct = Column(Integer, default=0)
+    updated_at = Column(String(50), nullable=True)
 
     employee = relationship("Employee", back_populates="courses")
+    course = relationship("Course")
+
+class EmployeeRoadmap(Base):
+    __tablename__ = "employee_roadmaps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(String(50), ForeignKey("employees.employee_id"), unique=True, index=True, nullable=False)
+    target_role_id = Column(String(50), ForeignKey("roles.role_id"), nullable=True)
+    roadmap_data = Column(Text, nullable=False)  # JSON serialized roadmap data
+    created_at = Column(String(50), nullable=True)
+    updated_at = Column(String(50), nullable=True)
+
+    employee = relationship("Employee", back_populates="roadmap")
+    role = relationship("Role")

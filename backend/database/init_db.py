@@ -10,7 +10,7 @@ from pathlib import Path
 from backend.database.db import engine, Base, SessionLocal, REPO_ROOT
 from backend.models.models import (
     User, Employee, Skill, EmployeeSkill, Role, RoleSkill,
-    Course, CourseSkill, CoursePrerequisite, EmployeeCourse
+    Course, CourseSkill, CoursePrerequisite, EmployeeCourse, EmployeeRoadmap
 )
 
 PROCESSED_DIR = os.getenv("PROCESSED_DIR", str(REPO_ROOT / "data" / "processed"))
@@ -20,9 +20,10 @@ def hash_pw(pw: str) -> str:
     return hashlib.sha256(pw.encode()).hexdigest()
 
 def ensure_schema_migrations(db_engine):
-    """Safely adds Phase 3 columns to employee_skills if not already present."""
+    """Safely adds Phase 3 & Phase 5 columns/tables if not already present."""
     with db_engine.connect() as conn:
         try:
+            # 1. employee_skills Phase 3 migrations
             result = conn.exec_driver_sql("PRAGMA table_info(employee_skills)").fetchall()
             existing_cols = {row[1] for row in result}
             if existing_cols:
@@ -35,7 +36,33 @@ def ensure_schema_migrations(db_engine):
                 if "updated_at" not in existing_cols:
                     conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN updated_at VARCHAR(50)")
                 conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_employee_skills_emp_skill ON employee_skills (employee_id, skill_id)")
-                conn.commit()
+
+            # 2. employee_courses Phase 5 migrations
+            ec_result = conn.exec_driver_sql("PRAGMA table_info(employee_courses)").fetchall()
+            ec_cols = {row[1] for row in ec_result}
+            if ec_cols:
+                if "progress_pct" not in ec_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_courses ADD COLUMN progress_pct INTEGER DEFAULT 0")
+                if "updated_at" not in ec_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_courses ADD COLUMN updated_at VARCHAR(50)")
+                conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_employee_courses_emp_course ON employee_courses (employee_id, course_id)")
+
+            # 3. employee_roadmaps Phase 5 table
+            conn.exec_driver_sql("""
+                CREATE TABLE IF NOT EXISTS employee_roadmaps (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    employee_id VARCHAR(50) NOT NULL UNIQUE,
+                    target_role_id VARCHAR(50),
+                    roadmap_data TEXT NOT NULL,
+                    created_at VARCHAR(50),
+                    updated_at VARCHAR(50),
+                    FOREIGN KEY(employee_id) REFERENCES employees(employee_id),
+                    FOREIGN KEY(target_role_id) REFERENCES roles(role_id)
+                )
+            """)
+            conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_employee_roadmaps_employee_id ON employee_roadmaps (employee_id)")
+
+            conn.commit()
         except Exception as e:
             print(f"[DB INIT] Schema migration notice: {e}")
 
@@ -169,7 +196,8 @@ def seed_database():
                     ec = EmployeeCourse(
                         employee_id=e["employee_id"],
                         course_id=c_id,
-                        status="completed"
+                        status="completed",
+                        progress_pct=100
                     )
                     session.add(ec)
 
