@@ -54,7 +54,9 @@ export const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
 
   const matchScore = targetRoleRec?.match_score != null 
     ? targetRoleRec.match_score 
-    : (readinessData?.skill_match_score != null ? readinessData.skill_match_score : null);
+    : (readinessData?.role_match_score != null 
+        ? readinessData.role_match_score 
+        : (readinessData?.skill_match_score != null ? readinessData.skill_match_score : null));
 
   const readinessScore = readinessData?.readiness_score != null
     ? readinessData.readiness_score

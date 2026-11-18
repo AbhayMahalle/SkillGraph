@@ -237,7 +237,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         throw new Error(data.detail || 'Failed to change password.');
       }
 
-      setPwdSuccessMsg('Password changed successfully! Old password is now invalidated.');
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token);
+      }
+
+      setPwdSuccessMsg('Password changed successfully! Old session invalidated and new session secured.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
