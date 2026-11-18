@@ -336,9 +336,10 @@ Resume Upload (PDF/DOCX/TXT)
 ## 🔬 Known Limitations & Architecture Notes
 
 1. **Token Storage**: JWT access tokens are stored in `localStorage` for SPA client state. In future enterprise phases, tokens may be transitioned to `HttpOnly` SameSite cookies with CSRF protection.
-2. **Token Revocation Storage**: Revoked tokens are currently tracked in-memory per process instance. In distributed multi-worker deployments, a shared Redis cache or database revocation table should be used.
+2. **Token Revocation Storage**: Revoked tokens are persisted directly in the SQLite `revoked_tokens` table with dual in-memory set caching, ensuring revocations survive server restarts and process reloads.
 3. **OCR Processing**: Scanned/image-only PDFs are safely detected and rejected with a helpful user prompt; optical character recognition (OCR) can be integrated in later phases if required.
 4. **Readiness Evaluation Methodology**: Career readiness utilizes a transparent, explainable multi-factor rule-based baseline rather than synthetic model artifacts, explicitly communicating methodology details and limitations.
-5. **Scope Boundaries**: Phase 7 Integration, QA & Polish is complete. New Phase 8 features, external deployment, and HR/Admin capabilities remain excluded per project constraints.
+5. **CORS & Environment Security**: Cross-Origin Resource Sharing is configured with explicit trusted origins (falling back to localhost/127.0.0.1 on ports 5173, 3000, 8000), and production mode mandates explicit `JWT_SECRET` configuration via environment variables as documented in `.env.example`.
+6. **Strict Employee Self-Service Scope**: SkillGraph is exclusively an individual employee career mobility system. It contains no administrative, HR, or workforce management backdoors.
 
 
