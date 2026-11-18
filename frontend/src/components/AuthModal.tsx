@@ -295,9 +295,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: 5, fontWeight: 500 }}>
-                Password
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('alex.rivera@skillgraph.internal');
+                    setLoginPassword('employee123');
+                    setErrorMessage('');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: 'var(--primary)',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Quick Fill Demo
+                </button>
+              </div>
               <div style={{ position: 'relative' }}>
                 <Lock size={15} color="var(--text-dim)" style={{ position: 'absolute', left: 12, top: 11 }} />
                 <input
@@ -309,6 +331,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   style={{ paddingLeft: 36 }}
                   required
                 />
+              </div>
+              <div style={{ marginTop: 6, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Demo password: <code style={{ color: 'var(--primary)', fontWeight: 600, background: 'var(--bg-muted)', padding: '2px 6px', borderRadius: 4 }}>employee123</code>
               </div>
             </div>
 

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   GraduationCap, Clock, CheckCircle2, Circle, 
   PlayCircle, AlertCircle, Sparkles, RefreshCw, 
-  ArrowRight, ShieldAlert, BookOpen, Check, Target
+  ArrowRight, ShieldAlert, BookOpen, Check, Target,
+  Bot, Cpu, Copy, ChevronDown, ChevronUp, Loader2
 } from 'lucide-react';
 
 interface PrerequisiteDetail {
@@ -41,6 +42,15 @@ interface UnaddressedGap {
   reason: string;
 }
 
+interface AIPlan {
+  status: string;
+  model_used: string;
+  plan_markdown?: string;
+  execution_time_seconds?: number;
+  message?: string;
+  error?: string;
+}
+
 interface RoadmapData {
   target_role_id: string;
   target_role_title: string;
@@ -59,6 +69,7 @@ interface RoadmapData {
   unaddressed_gaps: UnaddressedGap[];
   milestones: Milestone[];
   message?: string;
+  ai_plan?: AIPlan;
 }
 
 interface LearningPathViewProps {
@@ -84,6 +95,156 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'not_started' | 'in_progress' | 'completed'>('all');
+  const [generatingAiPlan, setGeneratingAiPlan] = useState<boolean>(false);
+  const [aiPlanError, setAiPlanError] = useState<string | null>(null);
+  const [llmStatus, setLlmStatus] = useState<any>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('qwen2.5:1.5b');
+  const [isPlanExpanded, setIsPlanExpanded] = useState<boolean>(true);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetch('/api/llm/status')
+      .then(res => res.json())
+      .then(data => {
+        setLlmStatus(data);
+        if (data?.active_model) {
+          setSelectedModel(data.active_model);
+        }
+      })
+      .catch(err => console.log('LLM status check:', err));
+  }, []);
+
+  const handleGenerateAiPlan = async () => {
+    setGeneratingAiPlan(true);
+    setAiPlanError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/roadmap/ai-plan', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          target_role_id: roleId,
+          model_name: selectedModel
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Failed to generate plan via Qwen.');
+      }
+
+      const result = await res.json();
+      setRoadmapData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          ai_plan: result.ai_plan
+        };
+      });
+      setIsPlanExpanded(true);
+    } catch (err: any) {
+      console.error('AI plan generation error:', err);
+      setAiPlanError(err.message || 'Error generating AI plan with local Qwen.');
+    } finally {
+      setGeneratingAiPlan(false);
+    }
+  };
+
+  const handleCopyPlan = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const renderMarkdownPlan = (text: string) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    return (
+      <div style={{ lineHeight: 1.6, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('### ')) {
+            return (
+              <h4 key={idx} style={{ 
+                fontSize: '1.02rem', 
+                fontWeight: 700, 
+                color: '#0284c7', 
+                marginTop: idx === 0 ? 4 : 18, 
+                marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8 
+              }}>
+                {trimmed.replace('### ', '')}
+              </h4>
+            );
+          }
+          if (trimmed.startsWith('## ')) {
+            return (
+              <h3 key={idx} style={{ fontSize: '1.12rem', fontWeight: 700, color: 'var(--text-main)', marginTop: 16, marginBottom: 8 }}>
+                {trimmed.replace('## ', '')}
+              </h3>
+            );
+          }
+          if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            const itemText = trimmed.substring(2);
+            const parts = itemText.split(/(\**.*?\**)/g);
+            return (
+              <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 6, paddingLeft: 8 }}>
+                <span style={{ color: '#0284c7', fontWeight: 700, marginTop: -1 }}>•</span>
+                <div>
+                  {parts.map((p, i) => {
+                    if (p.startsWith('**') && p.endsWith('**')) {
+                      return <strong key={i} style={{ color: 'var(--text-main)' }}>{p.slice(2, -2)}</strong>;
+                    }
+                    return <span key={i}>{p}</span>;
+                  })}
+                </div>
+              </div>
+            );
+          }
+          if (/^\d+\.\s/.test(trimmed)) {
+            const numMatch = trimmed.match(/^(\d+\.)\s(.*)/);
+            if (numMatch) {
+              const num = numMatch[1];
+              const rest = numMatch[2];
+              const parts = rest.split(/(\**.*?\**)/g);
+              return (
+                <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 6, paddingLeft: 8 }}>
+                  <span style={{ color: '#0284c7', fontWeight: 700, minWidth: 20 }}>{num}</span>
+                  <div>
+                    {parts.map((p, i) => {
+                      if (p.startsWith('**') && p.endsWith('**')) {
+                        return <strong key={i} style={{ color: 'var(--text-main)' }}>{p.slice(2, -2)}</strong>;
+                      }
+                      return <span key={i}>{p}</span>;
+                    })}
+                  </div>
+                </div>
+              );
+            }
+          }
+          if (!trimmed) {
+            return <div key={idx} style={{ height: 6 }} />;
+          }
+          const parts = line.split(/(\**.*?\**)/g);
+          return (
+            <p key={idx} style={{ margin: '0 0 8px 0' }}>
+              {parts.map((p, i) => {
+                if (p.startsWith('**') && p.endsWith('**')) {
+                  return <strong key={i} style={{ color: 'var(--text-main)' }}>{p.slice(2, -2)}</strong>;
+                }
+                return <span key={i}>{p}</span>;
+              })}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
 
   const fetchRoadmap = async (targetId: string, isRefresh: boolean = false) => {
     if (!targetId) {
@@ -449,6 +610,226 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
             </strong>
           </div>
         </div>
+      </div>
+
+      {/* AI Career & Study Plan (Powered by Local Ollama Qwen) */}
+      <div className="saas-card" style={{
+        padding: '22px 26px',
+        marginBottom: 28,
+        border: '1px solid #bae6fd',
+        background: 'linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '0 4px 16px rgba(2, 132, 199, 0.06)'
+      }}>
+        {/* Header Bar */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 14,
+          borderBottom: roadmapData.ai_plan ? '1px solid #e0f2fe' : 'none',
+          paddingBottom: roadmapData.ai_plan ? 16 : 0
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 38,
+              height: 38,
+              borderRadius: 'var(--radius-md)',
+              background: '#0284c7',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+            }}>
+              <Bot size={22} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ fontSize: '1.12rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                  AI Career & Study Plan
+                </h3>
+                <span className="badge" style={{
+                  background: '#e0f2fe',
+                  color: '#0369a1',
+                  border: '1px solid #bae6fd',
+                  fontSize: '0.72rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}>
+                  <Cpu size={12} /> Local Qwen LLM
+                </span>
+              </div>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0' }}>
+                On-device intelligence synthesizing prerequisite milestones, gap priorities, and executive advice.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {llmStatus?.qwen_models && llmStatus.qwen_models.length > 1 && (
+              <select
+                className="input-field"
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                disabled={generatingAiPlan}
+                style={{ width: 145, fontSize: '0.8rem', padding: '6px 8px', cursor: 'pointer' }}
+              >
+                {llmStatus.qwen_models.map((m: string) => (
+                  <option key={m} value={m}>
+                    {m} {m.includes('0.5b') ? '(Fast)' : '(Deep)'}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <button
+              onClick={handleGenerateAiPlan}
+              disabled={generatingAiPlan}
+              className="btn btn-primary"
+              style={{
+                fontSize: '0.84rem',
+                padding: '7px 16px',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
+              }}
+            >
+              {generatingAiPlan ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" /> Synthesizing Plan...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={15} /> {roadmapData.ai_plan ? 'Regenerate Plan' : 'Generate with Qwen'}
+                </>
+              )}
+            </button>
+
+            {roadmapData.ai_plan && (
+              <>
+                <button
+                  onClick={() => handleCopyPlan(roadmapData.ai_plan?.plan_markdown || '')}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                  title="Copy full plan markdown"
+                >
+                  {copied ? <Check size={14} style={{ color: '#10b981' }} /> : <Copy size={14} />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+
+                <button
+                  onClick={() => setIsPlanExpanded(!isPlanExpanded)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                  title={isPlanExpanded ? 'Collapse plan' : 'Expand plan'}
+                >
+                  {isPlanExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Error notification if any */}
+        {aiPlanError && (
+          <div style={{
+            background: '#fff1f2',
+            border: '1px solid #fecdd3',
+            color: '#e11d48',
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-md)',
+            marginTop: 14,
+            fontSize: '0.82rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            <AlertCircle size={16} />
+            <span>{aiPlanError}</span>
+          </div>
+        )}
+
+        {/* Generating Loading State */}
+        {generatingAiPlan && (
+          <div style={{
+            padding: '36px 20px',
+            textAlign: 'center',
+            background: '#ffffff',
+            borderRadius: 'var(--radius-md)',
+            marginTop: 16,
+            border: '1px dashed #bae6fd'
+          }}>
+            <Loader2 size={32} className="animate-spin" style={{ color: '#0284c7', margin: '0 auto 12px' }} />
+            <h4 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-main)', margin: '0 0 6px' }}>
+              Qwen is Generating Your Transition Plan
+            </h4>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, maxWidth: 500, marginInline: 'auto' }}>
+              Synthesizing candidate proficiencies, prerequisite sequencing, and career strategies via local {selectedModel} inference.
+            </p>
+          </div>
+        )}
+
+        {/* Active Plan Content */}
+        {!generatingAiPlan && roadmapData.ai_plan && isPlanExpanded && (
+          <div style={{
+            marginTop: 16,
+            background: '#ffffff',
+            borderRadius: 'var(--radius-md)',
+            padding: '22px 24px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+          }}>
+            {/* Meta Tags */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 16,
+              paddingBottom: 12,
+              borderBottom: '1px solid #f1f5f9',
+              flexWrap: 'wrap'
+            }}>
+              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                Model: <strong style={{ color: '#0f172a' }}>{roadmapData.ai_plan.model_used}</strong>
+              </span>
+              {roadmapData.ai_plan.execution_time_seconds && (
+                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                  Execution: <strong style={{ color: '#0f172a' }}>{roadmapData.ai_plan.execution_time_seconds}s</strong>
+                </span>
+              )}
+              <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                100% Private Local Inference
+              </span>
+            </div>
+
+            {/* Rendered Markdown */}
+            {renderMarkdownPlan(roadmapData.ai_plan.plan_markdown || '')}
+          </div>
+        )}
+
+        {/* Empty state when plan not yet generated */}
+        {!generatingAiPlan && !roadmapData.ai_plan && (
+          <div style={{
+            padding: '24px 20px',
+            textAlign: 'center',
+            background: '#ffffff',
+            borderRadius: 'var(--radius-md)',
+            marginTop: 14,
+            border: '1px dashed #cbd5e1'
+          }}>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '0 0 14px' }}>
+              No AI transition plan generated yet for <strong>{roadmapData.target_role_title}</strong>. Click below to generate an executive study guide, milestone breakdown, and capstone project advice using your local Qwen model.
+            </p>
+            <button
+              onClick={handleGenerateAiPlan}
+              className="btn btn-primary"
+              style={{ fontSize: '0.84rem', padding: '8px 20px' }}
+            >
+              <Sparkles size={15} /> Generate Plan with {selectedModel}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Unaddressed Gaps Alert */}
