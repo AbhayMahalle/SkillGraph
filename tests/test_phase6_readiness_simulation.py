@@ -35,19 +35,9 @@ from backend.ml.readiness import readiness_predictor
 # ---------------------------------------------------------
 # Isolated Test Database Setup
 # ---------------------------------------------------------
-BACKUP_DB_PATH = REPO_ROOT / "data" / "processed" / "skillgraph_backup_phase6.db"
-temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-TEMP_DB_PATH = temp_db_file.name
-temp_db_file.close()
+from tests.test_db_helper import create_isolated_test_database
 
-shutil.copyfile(str(BACKUP_DB_PATH), TEMP_DB_PATH)
-
-test_engine = create_engine(
-    f"sqlite:///{TEMP_DB_PATH}",
-    connect_args={"check_same_thread": False}
-)
-ensure_schema_migrations(test_engine)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+TEMP_DB_PATH, test_engine, TestingSessionLocal = create_isolated_test_database("phase6")
 
 def override_get_db():
     db = TestingSessionLocal()
