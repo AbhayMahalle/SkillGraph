@@ -32,6 +32,7 @@ from backend.ml.role_matching import calculate_role_match
 from backend.ml.readiness import readiness_predictor
 from backend.ml.learning_path import learning_path_generator
 from backend.graph.skill_graph import skill_graph_manager
+from backend.ml.ollama_service import get_ollama_status, generate_plan_with_qwen
 
 api_router = APIRouter()
 
@@ -113,6 +114,10 @@ class CourseProgressUpdate(BaseModel):
 
 class RoadmapRefreshRequest(BaseModel):
     target_role_id: Optional[str] = None
+
+class AIPlanGenerateRequest(BaseModel):
+    target_role_id: Optional[str] = None
+    model_name: Optional[str] = None
 
 class HypotheticalSkill(BaseModel):
     skill_name: Optional[str] = None
@@ -1343,6 +1348,14 @@ def compute_and_save_employee_roadmap(emp: Employee, role: Role, db: Session) ->
 
     now_str = datetime.utcnow().isoformat()
     emp_roadmap = db.query(EmployeeRoadmap).filter(EmployeeRoadmap.employee_id == emp.employee_id).first()
+    if emp_roadmap and emp_roadmap.target_role_id == role.role_id and emp_roadmap.roadmap_data:
+        try:
+            old_data = json.loads(emp_roadmap.roadmap_data)
+            if "ai_plan" in old_data:
+                roadmap["ai_plan"] = old_data["ai_plan"]
+        except Exception:
+            pass
+
     if not emp_roadmap:
         emp_roadmap = EmployeeRoadmap(
             employee_id=emp.employee_id,
@@ -1446,6 +1459,70 @@ def get_learning_path(
         "missing_skills": missing_skills,
         "learning_path": roadmap,
         **roadmap
+    }
+
+@api_router.get("/llm/status")
+def get_llm_status():
+    """Returns local Ollama service connection status and detected Qwen models."""
+    return get_ollama_status()
+
+@api_router.post("/roadmap/ai-plan")
+def generate_roadmap_ai_plan(
+    req: Optional[AIPlanGenerateRequest] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates a personalized career and study plan using local Ollama Qwen model.
+    Persists the generated plan to the user's active roadmap.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found.")
+
+    target_role_id = req.target_role_id if (req and req.target_role_id) else emp.target_role_id
+    if not target_role_id:
+        raise HTTPException(status_code=400, detail="No target role specified or set for employee.")
+
+    role = db.query(Role).filter(Role.role_id == target_role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail=f"Target role '{target_role_id}' not found.")
+
+    # Compute latest deterministic roadmap
+    roadmap = compute_and_save_employee_roadmap(emp, role, db)
+
+    # Collect inputs for Qwen
+    current_skills = [es.skill.name for es in emp.skills if es.skill]
+    model_to_use = req.model_name if (req and req.model_name) else None
+
+    # Call Ollama Qwen service
+    ai_result = generate_plan_with_qwen(
+        employee_name=emp.name,
+        current_role=emp.current_role,
+        exp_years=emp.experience_years,
+        target_role_title=role.title,
+        target_role_dept=role.department or "Engineering",
+        target_role_exp=role.experience_years or 2,
+        current_skills=current_skills,
+        milestones=roadmap.get("milestones", []),
+        gaps=roadmap.get("gaps", []),
+        unaddressed_gaps=roadmap.get("unaddressed_gaps", []),
+        model_name=model_to_use
+    )
+
+    # Attach ai_plan to roadmap and persist
+    roadmap["ai_plan"] = ai_result
+    now_str = datetime.utcnow().isoformat()
+    emp_roadmap = db.query(EmployeeRoadmap).filter(EmployeeRoadmap.employee_id == emp.employee_id).first()
+    if emp_roadmap:
+        emp_roadmap.roadmap_data = json.dumps(roadmap)
+        emp_roadmap.updated_at = now_str
+        db.commit()
+
+    return {
+        "success": ai_result.get("status") in ("success", "fallback"),
+        "ai_plan": ai_result,
+        "roadmap": roadmap
     }
 
 @api_router.get("/courses")
