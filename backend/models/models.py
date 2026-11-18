@@ -59,6 +59,9 @@ class EmployeeSkill(Base):
     employee_id = Column(String(50), ForeignKey("employees.employee_id"), nullable=False)
     skill_id = Column(String(50), ForeignKey("skills.skill_id"), nullable=False)
     proficiency = Column(String(50), default="Intermediate")  # Beginner, Intermediate, Advanced, Expert
+    proficiency_percentage = Column(Integer, default=50, nullable=True)  # 0 to 100 estimated percentage
+    confidence = Column(Float, default=1.0, nullable=True)  # 0.0 to 1.0 confidence score
+    reasoning = Column(Text, nullable=True)
     verified = Column(Boolean, default=False)
     source = Column(String(50), default="self_reported")  # self_reported, resume_extracted, assessment, project
     evidence = Column(Text, nullable=True)
@@ -166,4 +169,32 @@ class RevokedToken(Base):
     token = Column(String(500), unique=True, index=True, nullable=False)
     revoked_at = Column(String(50), nullable=False)
     expires_at = Column(String(50), nullable=True)
+
+class ResumeAnalysis(Base):
+    __tablename__ = "resume_analyses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(String(50), ForeignKey("employees.employee_id"), nullable=False, index=True)
+    filename = Column(String(255), nullable=True)
+    extracted_text_snippet = Column(Text, nullable=True)
+    analysis_json = Column(Text, nullable=False)  # JSON-serialized structured LLM analysis
+    provider = Column(String(50), nullable=True)
+    model = Column(String(100), nullable=True)
+    created_at = Column(String(50), nullable=True)
+
+    employee = relationship("Employee")
+
+class AILearningPlan(Base):
+    __tablename__ = "ai_learning_plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(String(50), ForeignKey("employees.employee_id"), nullable=False, index=True)
+    target_role_id = Column(String(50), ForeignKey("roles.role_id"), nullable=False)
+    plan_json = Column(Text, nullable=False)  # JSON-serialized structured AI learning plan
+    provider = Column(String(50), nullable=True)
+    model = Column(String(100), nullable=True)
+    created_at = Column(String(50), nullable=True)
+
+    employee = relationship("Employee")
+    role = relationship("Role")
 

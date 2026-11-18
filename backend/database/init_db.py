@@ -35,6 +35,12 @@ def ensure_schema_migrations(db_engine):
                     conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN created_at VARCHAR(50)")
                 if "updated_at" not in existing_cols:
                     conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN updated_at VARCHAR(50)")
+                if "proficiency_percentage" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN proficiency_percentage INTEGER DEFAULT 50")
+                if "confidence" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN confidence FLOAT DEFAULT 1.0")
+                if "reasoning" not in existing_cols:
+                    conn.exec_driver_sql("ALTER TABLE employee_skills ADD COLUMN reasoning TEXT")
                 conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_employee_skills_emp_skill ON employee_skills (employee_id, skill_id)")
 
             # 2. employee_courses Phase 5 migrations
@@ -72,6 +78,38 @@ def ensure_schema_migrations(db_engine):
                 )
             """)
             conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_revoked_tokens_token ON revoked_tokens (token)")
+
+            # 5. resume_analyses table for structured LLM extraction records
+            conn.exec_driver_sql("""
+                CREATE TABLE IF NOT EXISTS resume_analyses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    employee_id VARCHAR(50) NOT NULL,
+                    filename VARCHAR(255),
+                    extracted_text_snippet TEXT,
+                    analysis_json TEXT NOT NULL,
+                    provider VARCHAR(50),
+                    model VARCHAR(100),
+                    created_at VARCHAR(50),
+                    FOREIGN KEY(employee_id) REFERENCES employees(employee_id)
+                )
+            """)
+            conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_resume_analyses_employee_id ON resume_analyses (employee_id)")
+
+            # 6. ai_learning_plans table for LLM generated personalized plans
+            conn.exec_driver_sql("""
+                CREATE TABLE IF NOT EXISTS ai_learning_plans (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    employee_id VARCHAR(50) NOT NULL,
+                    target_role_id VARCHAR(50) NOT NULL,
+                    plan_json TEXT NOT NULL,
+                    provider VARCHAR(50),
+                    model VARCHAR(100),
+                    created_at VARCHAR(50),
+                    FOREIGN KEY(employee_id) REFERENCES employees(employee_id),
+                    FOREIGN KEY(target_role_id) REFERENCES roles(role_id)
+                )
+            """)
+            conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_ai_learning_plans_employee_id ON ai_learning_plans (employee_id)")
 
             conn.commit()
         except Exception as e:
