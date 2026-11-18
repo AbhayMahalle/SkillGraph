@@ -249,19 +249,21 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 @api_router.post("/auth/logout")
 def logout(
     current_user: User = Depends(get_current_user),
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
 ):
-    """Terminates active session by revoking the JWT token on the server."""
-    revoke_token(credentials.credentials)
+    """Terminates active session by revoking the JWT token in SQLite and memory."""
+    revoke_token(credentials.credentials, db)
     return {"status": "success", "message": "Successfully logged out"}
 
 @api_router.post("/auth/change-password")
 def change_password(
     req: ChangePasswordRequest,
     current_user: User = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
-    """Securely updates password after verifying existing credentials."""
+    """Securely updates password after verifying existing credentials and invalidates active session."""
     if not verify_password(req.current_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -279,8 +281,14 @@ def change_password(
         )
 
     current_user.hashed_password = hash_password(req.new_password)
+    revoke_token(credentials.credentials, db)
     db.commit()
-    return {"status": "success", "message": "Password changed successfully"}
+    new_access_token = create_access_token(data={"sub": current_user.email})
+    return {
+        "status": "success",
+        "message": "Password changed successfully",
+        "access_token": new_access_token
+    }
 
 @api_router.get("/users/me")
 def get_user_me(

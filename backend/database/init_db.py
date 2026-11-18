@@ -62,6 +62,17 @@ def ensure_schema_migrations(db_engine):
             """)
             conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_employee_roadmaps_employee_id ON employee_roadmaps (employee_id)")
 
+            # 4. revoked_tokens SQLite-backed token revocation table
+            conn.exec_driver_sql("""
+                CREATE TABLE IF NOT EXISTS revoked_tokens (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    token VARCHAR(500) NOT NULL UNIQUE,
+                    revoked_at VARCHAR(50) NOT NULL,
+                    expires_at VARCHAR(50)
+                )
+            """)
+            conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_revoked_tokens_token ON revoked_tokens (token)")
+
             conn.commit()
         except Exception as e:
             print(f"[DB INIT] Schema migration notice: {e}")

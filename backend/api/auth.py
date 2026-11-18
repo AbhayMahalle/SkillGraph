@@ -18,23 +18,50 @@ from backend.database.db import get_db
 from backend.models.models import User, Employee
 
 # Cryptographic token configuration
-JWT_SECRET = os.getenv("JWT_SECRET", "skillgraph-ai-talent-secret-key-2026-production-safe")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    env_mode = os.getenv("ENVIRONMENT", "development").lower()
+    if env_mode in ("production", "prod"):
+        raise RuntimeError("FATAL: JWT_SECRET environment variable must be explicitly configured in production mode.")
+    JWT_SECRET = os.getenv("SKILLGRAPH_JWT_SECRET", "skillgraph-ai-talent-secret-key-2026-production-safe")
+
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
 # Security scheme
 security = HTTPBearer()
 
-# In-memory token revocation blacklist (tracks logged-out tokens)
+# In-memory fast cache for revoked tokens
 REVOKED_TOKENS: Set[str] = set()
 
-def revoke_token(token: str) -> None:
-    """Add a token to the revoked blacklist."""
+def revoke_token(token: str, db: Optional[Session] = None) -> None:
+    """Add a token to the revoked blacklist and persist to SQLite if DB session is available."""
     REVOKED_TOKENS.add(token)
+    if db is not None:
+        try:
+            from backend.models.models import RevokedToken
+            existing = db.query(RevokedToken).filter(RevokedToken.token == token).first()
+            if not existing:
+                now_str = datetime.utcnow().isoformat()
+                db.add(RevokedToken(token=token, revoked_at=now_str))
+                db.commit()
+        except Exception:
+            db.rollback()
 
-def is_token_revoked(token: str) -> bool:
-    """Check if token has been revoked."""
-    return token in REVOKED_TOKENS
+def is_token_revoked(token: str, db: Optional[Session] = None) -> bool:
+    """Check if token has been revoked in memory or in SQLite."""
+    if token in REVOKED_TOKENS:
+        return True
+    if db is not None:
+        try:
+            from backend.models.models import RevokedToken
+            found = db.query(RevokedToken).filter(RevokedToken.token == token).first()
+            if found:
+                REVOKED_TOKENS.add(token)
+                return True
+        except Exception:
+            pass
+    return False
 
 def hash_password(password: str, salt: Optional[str] = None) -> str:
     """
@@ -110,7 +137,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if is_token_revoked(token):
+    if is_token_revoked(token, db):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session has been terminated. Please log in again.",
