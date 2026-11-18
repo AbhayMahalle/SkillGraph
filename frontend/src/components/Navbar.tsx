@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Network, Compass, Target, GraduationCap, 
-  Sparkles, Database, LogOut, UserCheck, 
+  Sparkles, LogOut, UserCheck, 
   LogIn, UserPlus, Shield
 } from 'lucide-react';
 
@@ -28,16 +28,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'skill-gap', label: 'Skill Gap & Readiness', icon: Sparkles },
     { id: 'learning-path', label: 'Learning Roadmap', icon: GraduationCap },
     { id: 'simulator', label: 'Career Sandbox', icon: Sparkles },
-    { id: 'graph', label: 'SkillGraph 2D', icon: Network },
-    { id: 'datasets', label: 'Dataset Lineage', icon: Database },
   ];
 
   // Navigation tabs for unauthenticated public visitors
   const publicNavItems = [
     { id: 'landing', label: 'Platform Vision', icon: Compass },
     { id: 'roles', label: 'Role Explorer', icon: Target },
-    { id: 'graph', label: 'SkillGraph 2D', icon: Network },
-    { id: 'datasets', label: 'Dataset Lineage', icon: Database },
   ];
 
   const currentNavItems = currentUser ? authNavItems : publicNavItems;

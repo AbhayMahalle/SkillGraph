@@ -54,10 +54,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         return { section: 'Workspace', title: 'Learning Roadmap' };
       case 'simulator':
         return { section: 'Workspace', title: 'Career What-If Simulator' };
-      case 'graph':
-        return { section: 'Research', title: 'Skill Graph 2D Explorer' };
-      case 'datasets':
-        return { section: 'Research', title: 'Dataset Lineage & Audit' };
       case 'landing':
         return { section: 'Platform', title: 'SkillGraph Vision' };
       default:

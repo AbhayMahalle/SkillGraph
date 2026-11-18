@@ -8,8 +8,6 @@ import { RoleExplorer } from './components/RoleExplorer';
 import { SkillGapView } from './components/SkillGapView';
 import { LearningPathView } from './components/LearningPathView';
 import { WhatIfSimulator } from './components/WhatIfSimulator';
-import { SkillGraphVisualizer } from './components/SkillGraphVisualizer';
-import { DatasetsExplorer } from './components/DatasetsExplorer';
 import { AuthModal } from './components/AuthModal';
 
 export const App: React.FC = () => {
@@ -302,14 +300,6 @@ export const App: React.FC = () => {
               initialRoleId={selectedRoleId}
               allRoles={allRoles}
             />
-          )}
-
-          {activeTab === 'graph' && (
-            <SkillGraphVisualizer />
-          )}
-
-          {activeTab === 'datasets' && (
-            <DatasetsExplorer />
           )}
         </main>
 

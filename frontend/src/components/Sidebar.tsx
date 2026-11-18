@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   LayoutDashboard, UserCheck, Compass, Target, 
-  GraduationCap, Sparkles, Network, Database, 
+  GraduationCap, Sparkles, Network, 
   ChevronLeft, ChevronRight, LogOut, LogIn, 
   UserPlus, User, X, Home
 } from 'lucide-react';
@@ -37,12 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'skill-gap', label: 'Skill Gap Analysis', icon: Target, authRequired: true },
     { id: 'learning-path', label: 'Learning Roadmap', icon: GraduationCap, authRequired: true },
     { id: 'simulator', label: 'Career Simulator', icon: Sparkles, authRequired: true },
-  ];
-
-  // Research & Analytics Navigation
-  const researchNavItems = [
-    { id: 'graph', label: 'Skill Graph 2D', icon: Network, authRequired: false },
-    { id: 'datasets', label: 'Dataset Lineage', icon: Database, authRequired: false },
   ];
 
   const handleNavClick = (tabId: string, authRequired: boolean) => {
@@ -277,7 +271,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Navigation Groups */}
           {renderNavGroup('Career Workspace', mainNavItems)}
-          {renderNavGroup('Research & Lineage', researchNavItems)}
         </div>
 
         {/* Footer Account Section */}
