@@ -20,7 +20,8 @@ from sqlalchemy.orm import Session
 from backend.database.db import get_db, REPO_ROOT
 from backend.models.models import (
     User, Employee, Skill, EmployeeSkill, Role, RoleSkill,
-    Course, CourseSkill, CoursePrerequisite, EmployeeCourse, EmployeeRoadmap
+    Course, CourseSkill, CoursePrerequisite, EmployeeCourse, EmployeeRoadmap,
+    ResumeAnalysis, AILearningPlan
 )
 from backend.api.auth import (
     hash_password, verify_password, create_access_token,
@@ -33,6 +34,12 @@ from backend.ml.readiness import readiness_predictor
 from backend.ml.learning_path import learning_path_generator
 from backend.graph.skill_graph import skill_graph_manager
 from backend.ml.ollama_service import get_ollama_status, generate_plan_with_qwen
+from backend.ai.llm.factory import get_llm_status
+from backend.services.resume_service import process_resume_and_extract_skills
+from backend.services.learning_plan_service import generate_learning_roadmap_for_employee
+from backend.ml.inference.role_classifier import RoleClassifierPredictor
+
+role_classifier_predictor = RoleClassifierPredictor()
 
 api_router = APIRouter()
 
@@ -87,11 +94,23 @@ class SkillUpdateRequest(BaseModel):
 class SkillConfirmItem(BaseModel):
     skill_name: str
     proficiency: str = "Intermediate"
+    proficiency_percentage: Optional[int] = None
+    confidence: Optional[float] = None
+    reasoning: Optional[str] = None
     evidence: Optional[str] = None
     accepted: bool = True
 
 class ConfirmSkillsRequest(BaseModel):
     skills: List[SkillConfirmItem]
+
+class PredictRoleRequest(BaseModel):
+    skills: List[str]
+    experience_level: Optional[str] = "Mid"
+    qualification: Optional[str] = "Bachelor's in Computer Science"
+    top_k: Optional[int] = 5
+
+class AILearningPlanRequest(BaseModel):
+    target_role_id: Optional[str] = None
 
 # In-memory staging for extracted skills pending user review (keyed by user_id)
 STAGED_RESUME_EXTRACTIONS: Dict[int, Dict[str, Any]] = {}
@@ -448,12 +467,22 @@ def get_employee_profile(
     # Load skills
     skills_data = []
     for es in emp.skills:
+        pct = getattr(es, "proficiency_percentage", None)
+        if pct is None:
+            pct = 95 if es.proficiency == "Expert" else (80 if es.proficiency == "Advanced" else (60 if es.proficiency == "Intermediate" else 35))
+        conf = getattr(es, "confidence", None)
+        if conf is None:
+            conf = 1.0 if es.verified else 0.85
+
         skills_data.append({
             "id": es.id,
             "skill_id": es.skill_id,
             "skill_name": es.skill.name if es.skill else es.skill_id,
             "category": es.skill.category if es.skill else "General",
             "proficiency": es.proficiency,
+            "proficiency_percentage": pct,
+            "confidence": conf,
+            "reasoning": getattr(es, "reasoning", "") or "",
             "verified": es.verified,
             "source": es.source or "self_reported",
             "evidence": es.evidence,
@@ -541,12 +570,22 @@ def get_user_skills(
 
     skills_data = []
     for es in emp.skills:
+        pct = getattr(es, "proficiency_percentage", None)
+        if pct is None:
+            pct = 95 if es.proficiency == "Expert" else (80 if es.proficiency == "Advanced" else (60 if es.proficiency == "Intermediate" else 35))
+        conf = getattr(es, "confidence", None)
+        if conf is None:
+            conf = 1.0 if es.verified else 0.85
+
         skills_data.append({
             "id": es.id,
             "skill_id": es.skill_id,
             "skill_name": es.skill.name if es.skill else es.skill_id,
             "category": es.skill.category if es.skill else "General",
             "proficiency": es.proficiency,
+            "proficiency_percentage": pct,
+            "confidence": conf,
+            "reasoning": getattr(es, "reasoning", "") or "",
             "verified": es.verified,
             "source": es.source or "self_reported",
             "evidence": es.evidence,
@@ -861,8 +900,17 @@ def confirm_extracted_skills(
             EmployeeSkill.skill_id == skill.skill_id
         ).first()
 
+        prof_pct = item.proficiency_percentage if item.proficiency_percentage is not None else (
+            95 if prof == "Expert" else (80 if prof == "Advanced" else (60 if prof == "Intermediate" else 35))
+        )
+        conf_val = item.confidence if item.confidence is not None else 0.88
+        reasoning_val = item.reasoning or ""
+
         if existing:
             existing.proficiency = prof
+            existing.proficiency_percentage = prof_pct
+            existing.confidence = conf_val
+            existing.reasoning = reasoning_val
             existing.evidence = item.evidence or existing.evidence
             existing.source = "resume_extracted"
             existing.verified = False
@@ -872,6 +920,9 @@ def confirm_extracted_skills(
                 employee_id=emp.employee_id,
                 skill_id=skill.skill_id,
                 proficiency=prof,
+                proficiency_percentage=prof_pct,
+                confidence=conf_val,
+                reasoning=reasoning_val,
                 verified=False,
                 source="resume_extracted",
                 evidence=item.evidence,
@@ -2064,3 +2115,183 @@ def get_datasets_summary():
         }
 
     return summary
+
+# ---------------------------------------------------------
+# AI & LLM Intelligence Endpoints
+# ---------------------------------------------------------
+@api_router.get("/ai/status")
+def get_ai_status():
+    """
+    Returns diagnostics on external LLM API availability and configuration.
+    Never exposes API keys or secrets.
+    """
+    info = get_llm_status()
+    return {
+        "status": "configured" if info.get("is_configured") else "unconfigured",
+        "provider": info.get("provider"),
+        "model": info.get("model"),
+        "base_url": info.get("base_url"),
+        "timeout_seconds": info.get("timeout_seconds"),
+        "has_api_key": info.get("has_api_key"),
+        "masked_key": info.get("masked_key"),
+        "supported_providers": ["openai", "groq", "together", "ollama", "mistral", "deepseek", "custom"],
+        "configuration_guide": (
+            "To enable external LLM intelligence, set the following environment variables in .env:\n"
+            "  LLM_PROVIDER=openai (or groq, together, ollama, deepseek)\n"
+            "  LLM_MODEL=gpt-4o-mini (or llama-3.3-70b-versatile, qwen2.5:7b)\n"
+            "  LLM_API_KEY=your-api-key\n"
+            "  LLM_BASE_URL=https://api.openai.com/v1"
+        )
+    }
+
+@api_router.post("/ai/resume/analyze")
+async def analyze_resume_ai(
+    request: Request,
+    file: Optional[UploadFile] = File(None),
+    text: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Analyzes uploaded resume text using the external LLM API.
+    Identifies technical and soft skills, estimates proficiency level & percentage (0-100),
+    confidence score (0.0-1.0), extracts contextual evidence snippets, and stages for employee review.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    content_bytes = b""
+    filename = "resume_input.txt"
+
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict) and "text" in body and body["text"].strip():
+                content_bytes = body["text"].strip().encode("utf-8")
+                filename = "pasted_text.txt"
+        except Exception:
+            pass
+    elif file and file.filename:
+        filename = file.filename
+        content_bytes = await file.read()
+    elif text and text.strip():
+        content_bytes = text.strip().encode("utf-8")
+        filename = "pasted_text.txt"
+    elif emp.resume_text:
+        content_bytes = emp.resume_text.encode("utf-8")
+        filename = "saved_profile_resume.txt"
+
+    if not content_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A resume file (.pdf, .docx, .txt) or non-empty resume text must be provided."
+        )
+
+    try:
+        result = process_resume_and_extract_skills(
+            user_id=current_user.id,
+            emp=emp,
+            filename=filename,
+            content=content_bytes,
+            use_ai=True,
+            db=db
+        )
+
+        # Stage for user review
+        STAGED_RESUME_EXTRACTIONS[current_user.id] = {
+            "filename": result["filename"],
+            "file_type": result["file_type"],
+            "extracted_skills": result["extracted_skills"],
+            "overall_assessment": result.get("overall_assessment"),
+            "ai_powered": result.get("ai_powered", False),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        return result
+    except ResumeParsingError as rpe:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(rpe))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"AI Resume Analysis Error: {str(e)}")
+
+@api_router.post("/ai/learning-plan/generate")
+def generate_ai_learning_plan(
+    req: AILearningPlanRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates an external LLM-powered personalized learning plan.
+    Validates courses against internal catalog and respects DAG prerequisite ordering.
+    """
+    emp = db.query(Employee).filter(Employee.employee_id == current_user.employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    target_id = req.target_role_id or emp.target_role_id
+    if not target_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No target role specified. Please set a target career role first."
+        )
+
+    role = db.query(Role).filter(Role.role_id == target_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail=f"Target role '{target_id}' not found")
+
+    roadmap = generate_learning_roadmap_for_employee(emp, role, db, use_ai=True)
+    return {
+        "status": "success",
+        "target_role_id": role.role_id,
+        "target_role_title": role.title,
+        "ai_available": roadmap.get("ai_available", False),
+        "ai_plan": roadmap.get("ai_plan"),
+        "roadmap": roadmap
+    }
+
+# ---------------------------------------------------------
+# Machine Learning Model Endpoints
+# ---------------------------------------------------------
+@api_router.get("/ml/model-info")
+def get_ml_model_info():
+    """
+    Returns production ML model metadata and evaluation metrics
+    trained on empirical candidate-role transitions.
+    """
+    metadata_path = REPO_ROOT / "backend" / "ml" / "models" / "role_matching" / "model_metadata.json"
+    if not metadata_path.exists():
+        return {
+            "model_name": "RandomForestRoleClassifier",
+            "version": "1.0.0",
+            "status": "unloaded"
+        }
+    with open(metadata_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+@api_router.post("/ml/predict-role")
+def predict_role_ml(req: PredictRoleRequest):
+    """
+    Evaluates candidate skills through the trained production Random Forest Classifier
+    and outputs multi-class probability scores and contributing features.
+    """
+    if not req.skills:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Skill list cannot be empty."
+        )
+
+    predictions = role_classifier_predictor.predict_roles(
+        candidate_skills=req.skills,
+        experience_level=req.experience_level or "Mid",
+        qualification=req.qualification or "Bachelor's in Computer Science",
+        top_k=req.top_k or 5
+    )
+
+    return {
+        "status": "success",
+        "input_skills_count": len(req.skills),
+        "experience_level": req.experience_level,
+        "predictions": predictions
+    }
+
