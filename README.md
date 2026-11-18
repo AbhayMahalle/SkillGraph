@@ -92,6 +92,7 @@ SkillGraph/
 │   │   ├── models/
 │   │   │   └── readiness_model.joblib # Serialized readiness classifier & scaler
 │   │   ├── learning_path.py         # Prerequisite-aware topological DAG ordering
+│   │   ├── ollama_service.py        # Local Ollama Qwen AI career plan synthesis engine
 │   │   ├── readiness.py             # Career transition readiness predictor & heuristic engine
 │   │   ├── role_matching.py         # Multi-factor algorithmic role matching engine
 │   │   └── skill_extraction.py      # Resume NLP entity extractor & canonical normalizer
@@ -131,6 +132,19 @@ SkillGraph/
 ```
 
 ---
+
+---
+
+## 🤖 Local Ollama Qwen Integration (Private On-Device AI Plan Generation)
+
+SkillGraph integrates with local **Ollama** instances running **Qwen 2.5** (`qwen2.5:1.5b` or `qwen2.5:0.5b`) to synthesize personalized, executive-level career transition plans and study rhythms directly from the employee's topological prerequisite DAG and identified skill gaps:
+
+- **100% On-Device & Private**: Zero external API calls; all career data stays on your local machine.
+- **Prerequisite-Aware Prompting**: Synthesizes course sequence, missing core competencies, and independent learning tasks into an actionable 4-phase transition guide.
+- **Multi-Model Support**: Automatically detects installed Qwen models with fast (`0.5b`) and comprehensive (`1.5b`) inference toggles.
+- **REST Endpoints**:
+  - `GET /api/llm/status`: Returns Ollama availability and installed Qwen models.
+  - `POST /api/roadmap/ai-plan`: Generates and caches the personalized AI transition plan within the active user's roadmap.
 
 ## 🛠️ Local Setup & Execution Guide
 
