@@ -133,7 +133,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Failed to generate plan via Qwen.');
+        throw new Error(errData.detail || 'Failed to generate AI career coaching plan.');
       }
 
       const result = await res.json();
@@ -147,7 +147,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
       setIsPlanExpanded(true);
     } catch (err: any) {
       console.error('AI plan generation error:', err);
-      setAiPlanError(err.message || 'Error generating AI plan with local Qwen.');
+      setAiPlanError(err.message || 'Error generating AI career coaching plan.');
     } finally {
       setGeneratingAiPlan(false);
     }
@@ -651,40 +651,26 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
                   AI Career & Study Plan
                 </h3>
                 <span className="badge" style={{
-                  background: '#e0f2fe',
-                  color: '#0369a1',
-                  border: '1px solid #bae6fd',
+                  background: llmStatus?.configured ? '#ecfdf5' : '#f0f9ff',
+                  color: llmStatus?.configured ? '#047857' : '#0369a1',
+                  border: `1px solid ${llmStatus?.configured ? '#a7f3d0' : '#bae6fd'}`,
                   fontSize: '0.72rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 4
                 }}>
-                  <Cpu size={12} /> Local Qwen LLM
+                  <Cpu size={12} /> {llmStatus?.configured ? `LLM: ${llmStatus?.model || 'Configured'}` : 'AI Career Intelligence'}
                 </span>
               </div>
               <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0' }}>
-                On-device intelligence synthesizing prerequisite milestones, gap priorities, and executive advice.
+                {llmStatus?.configured
+                  ? 'AI-powered coaching synthesizing prerequisite milestones, capstone projects, and senior guidance.'
+                  : 'Synthesizing DAG milestone pacing, capstone projects, and gap priorities with transparent guidance.'}
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {llmStatus?.qwen_models && llmStatus.qwen_models.length > 1 && (
-              <select
-                className="input-field"
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                disabled={generatingAiPlan}
-                style={{ width: 145, fontSize: '0.8rem', padding: '6px 8px', cursor: 'pointer' }}
-              >
-                {llmStatus.qwen_models.map((m: string) => (
-                  <option key={m} value={m}>
-                    {m} {m.includes('0.5b') ? '(Fast)' : '(Deep)'}
-                  </option>
-                ))}
-              </select>
-            )}
-
             <button
               onClick={handleGenerateAiPlan}
               disabled={generatingAiPlan}
@@ -701,7 +687,7 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles size={15} /> {roadmapData.ai_plan ? 'Regenerate Plan' : 'Generate with Qwen'}
+                  <Sparkles size={15} /> {roadmapData.ai_plan ? 'Regenerate Coaching Plan' : 'Generate AI Coaching Plan'}
                 </>
               )}
             </button>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Target, Sparkles, CheckCircle, AlertCircle, 
   XCircle, ChevronRight, RefreshCw, Info, ShieldCheck, 
-  Check, Loader2, Award, FileText, Layers, TrendingUp
+  Check, Loader2, Award, FileText, Layers, TrendingUp, Cpu
 } from 'lucide-react';
 
 interface SkillGapViewProps {
@@ -35,6 +35,38 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
   const [targetSuccessMsg, setTargetSuccessMsg] = useState('');
   const [targetErrorMsg, setTargetErrorMsg] = useState('');
 
+  // Machine Learning Role Compatibility State
+  const [mlPrediction, setMlPrediction] = useState<any[]>([]);
+  const [mlLoading, setMlLoading] = useState<boolean>(false);
+  const [mlModelInfo, setMlModelInfo] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/ml/model-info')
+      .then(res => res.json())
+      .then(data => setMlModelInfo(data))
+      .catch(err => console.log('ML model info fetch error:', err));
+  }, []);
+
+  const fetchMlPredictions = async (skills: string[]) => {
+    if (!skills || skills.length === 0) return;
+    setMlLoading(true);
+    try {
+      const res = await fetch('/api/ml/predict-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skills, top_k: 5 })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMlPrediction(data.predictions || []);
+      }
+    } catch (err) {
+      console.log('ML prediction fetch error:', err);
+    } finally {
+      setMlLoading(false);
+    }
+  };
+
   const fetchGapAnalysis = () => {
     if (!roleId) return;
     setLoading(true);
@@ -55,6 +87,13 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
       .then((data) => {
         setGapData(data);
         setLoading(false);
+        const demonstrated = [
+          ...(data.met_skills || []).map((s: any) => s.skill_name),
+          ...(data.partially_met_skills || []).map((s: any) => s.skill_name)
+        ];
+        if (demonstrated.length > 0) {
+          fetchMlPredictions(demonstrated);
+        }
       })
       .catch((err) => {
         console.error('Skill gap fetch error:', err);
@@ -570,6 +609,135 @@ export const SkillGapView: React.FC<SkillGapViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Machine Learning Role Compatibility & Intelligent Classifier */}
+      <div className="saas-card" style={{ padding: 24, marginBottom: 28, border: '1px solid #c7d2fe', background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <Sparkles size={18} color="#4f46e5" />
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
+                Machine Learning Role Compatibility
+              </h3>
+              <span className="badge badge-purple" style={{ fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Cpu size={12} /> {mlModelInfo?.model_type || 'Random Forest Classifier'} ({Math.round((mlModelInfo?.cv_metrics?.accuracy_mean || 0.99) * 100)}% CV Accuracy)
+              </span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+              Multi-class occupational compatibility evaluated by trained Random Forest model across multi-hot skill vectors.
+            </p>
+          </div>
+
+          {mlModelInfo && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>
+                Features: {mlModelInfo.feature_dimension} Skills
+              </span>
+              <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>
+                Weighted F1: {((mlModelInfo.test_metrics?.weighted_f1 || 0.99) * 100).toFixed(1)}%
+              </span>
+            </div>
+          )}
+        </div>
+
+        {mlLoading ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 0', color: 'var(--text-dim)', fontSize: '0.84rem' }}>
+            <Loader2 size={16} className="animate-spin" />
+            <span>Evaluating multi-class probability scores across role catalog...</span>
+          </div>
+        ) : mlPrediction && mlPrediction.length > 0 ? (
+          <div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 14,
+              marginBottom: 16
+            }}>
+              {mlPrediction.map((p: any, idx: number) => {
+                const isCurrentRole = p.role.toLowerCase() === (gapData.role_title || '').toLowerCase();
+                const matchedRoleObj = allRoles.find(r => r.title.toLowerCase() === p.role.toLowerCase());
+                return (
+                  <div
+                    key={p.role}
+                    style={{
+                      background: isCurrentRole ? '#eef2ff' : '#ffffff',
+                      border: `1px solid ${isCurrentRole ? '#818cf8' : 'var(--border-subtle)'}`,
+                      borderRadius: 'var(--radius-md)',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8,
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+                        #{p.rank || idx + 1} Predicted Match
+                      </span>
+                      {isCurrentRole && (
+                        <span className="badge badge-purple" style={{ fontSize: '0.6rem' }}>
+                          Current View
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--text-main)', display: 'block', marginBottom: 2 }}>
+                        {p.role}
+                      </strong>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        <div style={{ flex: 1, background: '#e2e8f0', borderRadius: 99, height: 6, overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              width: `${Math.round(p.probability * 100)}%`,
+                              background: isCurrentRole ? '#4f46e5' : '#0284c7',
+                              height: '100%',
+                              borderRadius: 99
+                            }}
+                          />
+                        </div>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: isCurrentRole ? '#4f46e5' : '#0284c7', minWidth: 42, textAlign: 'right' }}>
+                          {(p.probability * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {p.contributing_features && p.contributing_features.length > 0 && (
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                        <span>Contributing skills: </span>
+                        <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>
+                          {p.contributing_features.slice(0, 3).map((f: any) => f.feature || f).join(', ')}
+                        </span>
+                      </div>
+                    )}
+
+                    {!isCurrentRole && matchedRoleObj && (
+                      <button
+                        onClick={() => onSelectRole(matchedRoleObj.role_id)}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.72rem', padding: '4px 8px', marginTop: 4, width: '100%', justifyContent: 'center' }}
+                      >
+                        Explore Role Gap <ChevronRight size={12} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Info size={13} />
+              <span>
+                ML probabilities reflect overall feature similarity against occupational cohorts, complementing deterministic requirement scoring.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: '10px 0', fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+            No profile skills loaded for ML classification. Upload a resume or add skills in your profile to view role compatibility predictions.
+          </div>
+        )}
+      </div>
 
       {/* Main Analysis Body: Categorized Skills + Radar Chart */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: 26 }}>

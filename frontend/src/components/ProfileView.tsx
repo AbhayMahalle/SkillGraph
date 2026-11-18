@@ -19,6 +19,9 @@ interface UserSkill {
   skill_name: string;
   category: string;
   proficiency: string;
+  proficiency_percentage?: number;
+  confidence?: number;
+  reasoning?: string;
   verified: boolean;
   source: string;
   evidence?: string | null;
@@ -32,7 +35,10 @@ interface StagedCandidateSkill {
   category: string;
   confidence: number;
   evidence: string;
+  evidence_section?: string;
+  reasoning?: string;
   proficiency: string;
+  proficiency_percentage: number;
   accepted: boolean;
 }
 
@@ -81,7 +87,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   // 4. Staged Candidate Skills Review Workflow
   const [stagedSkills, setStagedSkills] = useState<StagedCandidateSkill[]>([]);
   const [stagedMetadata, setStagedMetadata] = useState<{ filename: string | null; fileType: string | null } | null>(null);
+  const [overallAssessment, setOverallAssessment] = useState<any>(null);
   const [isConfirmingSkills, setIsConfirmingSkills] = useState(false);
+  const [aiStatus, setAiStatus] = useState<any>(null);
 
   // 5. Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -108,11 +116,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   }, [profile]);
 
-  // Load canonical skills catalog and check staged extractions on mount
+  // Load canonical skills catalog, AI engine status, and check staged extractions on mount
   useEffect(() => {
     loadCanonicalCatalog();
     loadStagedExtractions();
+    loadAiStatus();
   }, []);
+
+  const loadAiStatus = async () => {
+    try {
+      const res = await fetch('/api/ai/status');
+      if (res.ok) {
+        const data = await res.json();
+        setAiStatus(data);
+      }
+    } catch (err) {
+      console.log('AI status endpoint check:', err);
+    }
+  };
 
   const loadCanonicalCatalog = async () => {
     try {
@@ -137,18 +158,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         const data = await res.json();
         if (data.extracted_skills && data.extracted_skills.length > 0) {
           setStagedSkills(data.extracted_skills.map((s: any) => ({
-            skill_id: s.skill_id,
+            skill_id: s.skill_id || s.canonical_skill_id || 'SKL-EXTRA',
             skill_name: s.skill_name,
             category: s.category || 'General',
-            confidence: s.confidence || 0.85,
-            evidence: s.evidence || '',
+            confidence: typeof s.confidence === 'number' ? s.confidence : 0.85,
+            evidence: s.evidence_text || (Array.isArray(s.evidence) ? s.evidence.map((e: any) => e.text).join('; ') : (s.evidence || '')),
+            evidence_section: s.evidence_section || (Array.isArray(s.evidence) && s.evidence[0]?.section ? s.evidence[0].section : undefined),
+            reasoning: s.reasoning || '',
             proficiency: s.proficiency || 'Intermediate',
+            proficiency_percentage: typeof s.proficiency_percentage === 'number' ? s.proficiency_percentage : 70,
             accepted: true
           })));
           setStagedMetadata({
             filename: data.filename,
             fileType: data.file_type
           });
+          if (data.overall_assessment) {
+            setOverallAssessment(data.overall_assessment);
+          }
         }
       }
     } catch (err) {
@@ -442,19 +469,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       if (data.extracted_skills && data.extracted_skills.length > 0) {
         setStagedSkills(data.extracted_skills.map((s: any) => ({
-          skill_id: s.skill_id,
+          skill_id: s.skill_id || s.canonical_skill_id || 'SKL-EXTRA',
           skill_name: s.skill_name,
           category: s.category || 'General',
-          confidence: s.confidence || 0.85,
-          evidence: s.evidence || '',
+          confidence: typeof s.confidence === 'number' ? s.confidence : 0.85,
+          evidence: s.evidence_text || (Array.isArray(s.evidence) ? s.evidence.map((e: any) => e.text).join('; ') : (s.evidence || '')),
+          evidence_section: s.evidence_section || (Array.isArray(s.evidence) && s.evidence[0]?.section ? s.evidence[0].section : undefined),
+          reasoning: s.reasoning || '',
           proficiency: s.proficiency || 'Intermediate',
+          proficiency_percentage: typeof s.proficiency_percentage === 'number' ? s.proficiency_percentage : 70,
           accepted: true
         })));
         setStagedMetadata({
           filename: data.filename,
           fileType: data.file_type
         });
-        setUploadSuccess(`Identified ${data.total_extracted} candidate skill mentions from resume. Review below to accept, adjust, or reject before saving.`);
+        if (data.overall_assessment) {
+          setOverallAssessment(data.overall_assessment);
+        }
+        const engineLabel = data.ai_powered ? 'External LLM Structured Engine' : 'Deterministic Ontology Engine';
+        setUploadSuccess(`Identified ${data.total_extracted} candidate skill mentions from resume using ${engineLabel}. Review below to adjust proficiency, mastery percentage, or reject before saving.`);
       } else {
         setUploadSuccess('Document processed successfully, but no matching ontology skills were detected. You may add personal skills manually.');
       }
@@ -472,7 +506,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   // Update proficiency in staged candidate skill
   const updateStagedProficiency = (index: number, prof: string) => {
-    setStagedSkills(prev => prev.map((s, i) => i === index ? { ...s, proficiency: prof } : s));
+    const defaultPct = prof === 'Expert' ? 95 : (prof === 'Advanced' ? 80 : (prof === 'Intermediate' ? 65 : 40));
+    setStagedSkills(prev => prev.map((s, i) => i === index ? { ...s, proficiency: prof, proficiency_percentage: defaultPct } : s));
+  };
+
+  // Update proficiency percentage in staged candidate skill
+  const updateStagedProficiencyPercentage = (index: number, pct: number) => {
+    setStagedSkills(prev => prev.map((s, i) => i === index ? { ...s, proficiency_percentage: pct } : s));
   };
 
   // Select / Deselect All
@@ -496,7 +536,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         skills: stagedSkills.map(s => ({
           skill_name: s.skill_name,
           proficiency: s.proficiency,
+          proficiency_percentage: s.proficiency_percentage,
+          confidence: s.confidence,
           evidence: s.evidence,
+          reasoning: s.reasoning,
           accepted: s.accepted
         }))
       };
@@ -697,6 +740,28 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                           </button>
                         )}
 
+                        {/* Mastery Percentage */}
+                        {typeof sk.proficiency_percentage === 'number' && (
+                          <span
+                            className="badge badge-purple"
+                            style={{ fontSize: '0.64rem' }}
+                            title={`Estimated proficiency mastery: ${sk.proficiency_percentage}%`}
+                          >
+                            {sk.proficiency_percentage}% Mastery
+                          </span>
+                        )}
+
+                        {/* Model Confidence */}
+                        {typeof sk.confidence === 'number' && (
+                          <span
+                            className="badge badge-emerald"
+                            style={{ fontSize: '0.62rem' }}
+                            title={`Extraction / evidence match confidence: ${Math.round(sk.confidence * 100)}%`}
+                          >
+                            {Math.round(sk.confidence * 100)}% Conf
+                          </span>
+                        )}
+
                         {/* Provenance Badge */}
                         <span
                           className={`badge ${sk.source === 'resume_extracted' ? 'badge-cyan' : 'badge-purple'}`}
@@ -738,6 +803,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       }}>
                         <span style={{ fontWeight: 600, color: '#0284c7' }}>Evidence: </span>
                         {sk.evidence}
+                      </div>
+                    )}
+
+                    {/* Reasoning Snippet if present */}
+                    {sk.reasoning && (
+                      <div style={{
+                        fontSize: '0.72rem',
+                        color: '#475569',
+                        background: '#f0fdf4',
+                        padding: '3px 8px',
+                        borderRadius: 4,
+                        borderLeft: '2px solid #10b981',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}>
+                        <Sparkles size={11} color="#10b981" />
+                        <span><strong>Reasoning:</strong> {sk.reasoning}</span>
                       </div>
                     )}
                   </div>
@@ -991,13 +1074,34 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={19} color="#7c3aed" /> Resume Intelligence Center
               </h3>
-              <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
-                NLP Parser v3
+              <span className={`badge ${aiStatus?.has_api_key ? 'badge-emerald' : 'badge-purple'}`} style={{ fontSize: '0.7rem' }}>
+                {aiStatus?.has_api_key ? `LLM Active (${aiStatus.provider})` : 'AI Pipeline Active'}
               </span>
             </div>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 16 }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 12 }}>
               Upload your resume in PDF, Word (DOCX), or plain text (TXT) format. Extracted candidate skills are staged for review and <strong>never</strong> automatically marked as verified expertise without your approval.
             </p>
+
+            {/* AI Architecture Status Banner */}
+            <div style={{
+              background: aiStatus?.has_api_key ? '#f0fdf4' : '#f8fafc',
+              border: `1px solid ${aiStatus?.has_api_key ? '#bbf7d0' : '#e2e8f0'}`,
+              color: aiStatus?.has_api_key ? '#166534' : '#475569',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.76rem',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}>
+              <Sparkles size={14} color={aiStatus?.has_api_key ? '#16a34a' : '#6366f1'} />
+              <span>
+                {aiStatus?.has_api_key
+                  ? `External LLM Engine: ${aiStatus.provider} (${aiStatus.model}). Deep semantic extraction with evidence snippets, confidence, and proficiency estimation.`
+                  : `AI Engine: Canonical ontology extraction with confidence estimation. (Set LLM_API_KEY in .env to activate external LLM API).`}
+              </span>
+            </div>
 
             {uploadSuccess && (
               <div style={{
@@ -1177,27 +1281,40 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </div>
               </div>
 
-              {/* Informative Disclaimer Alert */}
+              {/* Informative Disclaimer & Overall Assessment Alert */}
               <div style={{
                 background: '#f0f9ff',
                 border: '1px solid #bae6fd',
                 color: '#0369a1',
-                padding: '8px 12px',
+                padding: '10px 14px',
                 borderRadius: 'var(--radius-sm)',
-                fontSize: '0.76rem',
+                fontSize: '0.78rem',
                 marginBottom: 14,
                 display: 'flex',
-                alignItems: 'center',
-                gap: 8
+                flexDirection: 'column',
+                gap: 6
               }}>
-                <Info size={16} style={{ flexShrink: 0 }} />
-                <span>
-                  Extracted skills are unverified mentions. Review match confidence and context snippets, adjust proficiency levels, and confirm which skills to persist to your personal profile.
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Info size={16} style={{ flexShrink: 0 }} />
+                  <span>
+                    Extracted candidate skills are staged for review. Adjust proficiency levels and estimated mastery percentages, inspect context evidence, and confirm which skills to persist to your personal profile.
+                  </span>
+                </div>
+                {overallAssessment && (
+                  <div style={{
+                    marginTop: 4,
+                    paddingTop: 6,
+                    borderTop: '1px solid #bae6fd',
+                    fontSize: '0.74rem',
+                    color: '#0284c7'
+                  }}>
+                    <strong>AI Executive Summary:</strong> {overallAssessment.summary || overallAssessment.primary_domain}
+                  </div>
+                )}
               </div>
 
               {/* Candidate Skills Review Table */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 320, overflowY: 'auto', marginBottom: 16, paddingRight: 4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 360, overflowY: 'auto', marginBottom: 16, paddingRight: 4 }}>
                 {stagedSkills.map((sk, index) => (
                   <div
                     key={`${sk.skill_name}-${index}`}
@@ -1211,7 +1328,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       gap: 6
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                       <div
                         onClick={() => toggleStagedSkill(index)}
                         style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
@@ -1231,13 +1348,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         {/* Confidence score */}
                         <span className="badge badge-emerald" style={{ fontSize: '0.66rem' }}>
                           {Math.round(sk.confidence * 100)}% Match
                         </span>
 
-                        {/* Proficiency selector */}
+                        {/* Proficiency Level Selector */}
                         <select
                           value={sk.proficiency}
                           onChange={(e) => updateStagedProficiency(index, e.target.value)}
@@ -1255,6 +1372,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                             <option key={p} value={p}>{p}</option>
                           ))}
                         </select>
+
+                        {/* Proficiency Percentage Slider */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', opacity: sk.accepted ? 1 : 0.5 }}>
+                          <span style={{ color: 'var(--text-dim)' }}>Mastery:</span>
+                          <input
+                            type="range"
+                            min="10"
+                            max="100"
+                            step="5"
+                            value={sk.proficiency_percentage}
+                            onChange={(e) => updateStagedProficiencyPercentage(index, parseInt(e.target.value, 10))}
+                            disabled={!sk.accepted}
+                            style={{ width: 65, cursor: sk.accepted ? 'pointer' : 'not-allowed' }}
+                            title={`Estimated mastery: ${sk.proficiency_percentage}%`}
+                          />
+                          <strong style={{ minWidth: 28, color: '#4f46e5' }}>{sk.proficiency_percentage}%</strong>
+                        </div>
                       </div>
                     </div>
 
@@ -1265,12 +1399,38 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         color: 'var(--text-secondary)',
                         background: '#f8fafc',
                         border: '1px solid #e2e8f0',
+                        padding: '6px 10px',
+                        borderRadius: 4,
+                        marginLeft: 28,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2
+                      }}>
+                        {sk.evidence_section && (
+                          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#0284c7', textTransform: 'uppercase' }}>
+                            Section: {sk.evidence_section}
+                          </span>
+                        )}
+                        <span style={{ fontStyle: 'italic' }}>"{sk.evidence}"</span>
+                      </div>
+                    )}
+
+                    {/* Explainable Model Reasoning */}
+                    {sk.reasoning && (
+                      <div style={{
+                        fontSize: '0.72rem',
+                        color: '#475569',
+                        background: '#f0fdf4',
+                        borderLeft: '3px solid #10b981',
                         padding: '4px 8px',
                         borderRadius: 4,
-                        fontStyle: 'italic',
-                        marginLeft: 28
+                        marginLeft: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
                       }}>
-                        "{sk.evidence}"
+                        <Sparkles size={12} color="#10b981" />
+                        <span><strong>Reasoning:</strong> {sk.reasoning}</span>
                       </div>
                     )}
                   </div>
