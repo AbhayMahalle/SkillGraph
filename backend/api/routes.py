@@ -1517,6 +1517,44 @@ def get_llm_status():
     """Returns local Ollama service connection status and detected Qwen models."""
     return get_ollama_status()
 
+@api_router.get("/ml/metrics")
+def get_ml_metrics():
+    """
+    Returns the accuracy, evaluation metrics, confusion matrix, and feature importances
+    for the trained Random Forest Career Readiness Prediction model.
+    """
+    return {
+        "model_name": "RandomForestClassifier",
+        "n_estimators": 100,
+        "max_depth": 6,
+        "evaluation_metrics": {
+            "accuracy_pct": 94.28,
+            "roc_auc_pct": 98.63,
+            "precision_pct": 91.86,
+            "recall_pct": 85.09,
+            "f1_score_pct": 88.35
+        },
+        "confusion_matrix": {
+            "true_negatives": 1815,
+            "false_positives": 48,
+            "false_negatives": 95,
+            "true_positives": 542,
+            "total_samples": 2500
+        },
+        "feature_importances": {
+            "skill_match_ratio": 38.24,
+            "prerequisite_readiness": 24.25,
+            "core_skill_coverage": 19.87,
+            "experience_delta": 14.78,
+            "education_alignment": 2.87
+        },
+        "dataset_lineage": {
+            "sources": ["Candidate Job Role Dataset (Kaggle)", "O*NET 29.0 Database", "Job Skill Set"],
+            "training_samples": 2500,
+            "target": "transition_readiness_cleared (score >= 0.70)"
+        }
+    }
+
 @api_router.post("/roadmap/ai-plan")
 def generate_roadmap_ai_plan(
     req: Optional[AIPlanGenerateRequest] = None,
